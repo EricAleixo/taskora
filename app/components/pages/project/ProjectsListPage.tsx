@@ -1,5 +1,7 @@
 "use client";
-
+import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useDeleteProject } from "@/src/client/services/project/useDeleteProject";
 import { useState, useRef, useEffect } from "react";
 import { CheckSquare, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
@@ -13,7 +15,8 @@ import { MdTrendingUp } from "react-icons/md";
 import { Project } from "@/app/types/Project";
 import { AddProjectModal } from "../../organisms/Modal/AddProjectModal";
 import { useProjects } from "@/src/client/services/project/useProjects";
-import Link from "next/link"
+import Link from "next/link";
+import { toastDeleteProject } from "../../molecules/ToastDeleteProject/ToastDeleteProject";
 
 // ─── Dropdown Menu ─────────────────────────────────────────────────────────────
 
@@ -108,10 +111,15 @@ const DeleteConfirmDialog = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-1.5">
-          <h3 className="font-semibold text-foreground text-base">Excluir projeto</h3>
+          <h3 className="font-semibold text-foreground text-base">
+            Excluir projeto
+          </h3>
           <p className="text-sm text-muted-foreground">
             Tem certeza que deseja excluir{" "}
-            <span className="font-medium text-foreground">"{projectTitle}"</span>? Essa ação não pode ser desfeita.
+            <span className="font-medium text-foreground">
+              "{projectTitle}"
+            </span>
+            ? Essa ação não pode ser desfeita.
           </p>
         </div>
         <div className="flex items-center gap-2 justify-end">
@@ -154,7 +162,8 @@ const ProjectCard = ({
   onDelete: () => void;
 }) => {
   const total = project.tasks?.length ?? 0;
-  const done = project.tasks?.filter((t) => t.status === "completed").length ?? 0;
+  const done =
+    project.tasks?.filter((t) => t.status === "completed").length ?? 0;
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
   const isDone = total > 0 && progress === 100;
 
@@ -186,7 +195,9 @@ const ProjectCard = ({
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Progresso</span>
-          <span className={`font-medium ${isDone ? "text-emerald-500" : "text-foreground"}`}>
+          <span
+            className={`font-medium ${isDone ? "text-emerald-500" : "text-foreground"}`}
+          >
             {progress}%
           </span>
         </div>
@@ -196,7 +207,9 @@ const ProjectCard = ({
       <div className="flex items-center justify-between pt-1 border-t border-border">
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <CheckSquare className="h-3.5 w-3.5" />
-          <span className="text-xs">{done}/{total} tarefas</span>
+          <span className="text-xs">
+            {done}/{total} tarefas
+          </span>
         </div>
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <LuCalendar className="h-3.5 w-3.5" />
@@ -228,7 +241,8 @@ const ProjectRow = ({
   onDelete: () => void;
 }) => {
   const total = project.tasks?.length ?? 0;
-  const done = project.tasks?.filter((t) => t.status === "completed").length ?? 0;
+  const done =
+    project.tasks?.filter((t) => t.status === "completed").length ?? 0;
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
   const isDone = total > 0 && progress === 100;
 
@@ -252,14 +266,18 @@ const ProjectRow = ({
 
       <div className="hidden md:flex items-center gap-2 w-36 shrink-0">
         <ProgressBar value={progress} />
-        <span className={`text-xs font-medium shrink-0 ${isDone ? "text-emerald-500" : "text-muted-foreground"}`}>
+        <span
+          className={`text-xs font-medium shrink-0 ${isDone ? "text-emerald-500" : "text-muted-foreground"}`}
+        >
           {progress}%
         </span>
       </div>
 
       <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground shrink-0">
         <CheckSquare className="h-3.5 w-3.5" />
-        <span className="text-xs">{done}/{total}</span>
+        <span className="text-xs">
+          {done}/{total}
+        </span>
       </div>
 
       <div className="flex items-center gap-1.5 text-muted-foreground shrink-0">
@@ -293,7 +311,9 @@ const StatCard = ({
   accent: string;
 }) => (
   <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-4">
-    <div className={`flex items-center justify-center w-9 h-9 rounded-lg ${accent}`}>
+    <div
+      className={`flex items-center justify-center w-9 h-9 rounded-lg ${accent}`}
+    >
       <Icon className="h-4 w-4" />
     </div>
     <div>
@@ -309,12 +329,33 @@ interface ProjectsListPageProps {
   initialProjects: Project[];
 }
 
-export const ProjectsListPage = ({ initialProjects }: ProjectsListPageProps) => {
+export const ProjectsListPage = ({
+  initialProjects,
+}: ProjectsListPageProps) => {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { mutate: deleteProject } = useDeleteProject();
+
   const { data: projects = [] } = useProjects(initialProjects);
+
+  // Mostra toast quando vindo do ProjectHeader com ?deleted=true
+  const deletedToastShown = useRef(false);
+
+  useEffect(() => {
+    if (searchParams.get("deleted") === "true" && !deletedToastShown.current) {
+      deletedToastShown.current = true;
+      const title = searchParams.get("title") ?? undefined;
+      toastDeleteProject(title);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("deleted");
+      url.searchParams.delete("title");
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const filtered = projects.filter(
     (p) =>
@@ -322,9 +363,13 @@ export const ProjectsListPage = ({ initialProjects }: ProjectsListPageProps) => 
       (p.description ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
-  const totalTasks = projects.reduce((acc, p) => acc + (p.tasks?.length ?? 0), 0);
+  const totalTasks = projects.reduce(
+    (acc, p) => acc + (p.tasks?.length ?? 0),
+    0,
+  );
   const doneTasks = projects.reduce(
-    (acc, p) => acc + (p.tasks?.filter((t) => t.status === "completed").length ?? 0),
+    (acc, p) =>
+      acc + (p.tasks?.filter((t) => t.status === "completed").length ?? 0),
     0,
   );
   const doneProjects = projects.filter((p) => {
@@ -344,9 +389,18 @@ export const ProjectsListPage = ({ initialProjects }: ProjectsListPageProps) => 
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
-    // TODO: chamar service de exclusão
-    console.log("delete", deleteTarget.id);
-    setDeleteTarget(null);
+
+    deleteProject(
+      { id: String(deleteTarget.id) },
+      {
+        onSuccess: () => {
+          setDeleteTarget(null);
+        },
+        onError: () => {
+          toast.error("Erro ao deletar projeto");
+        },
+      },
+    );
   };
 
   return (
@@ -427,7 +481,9 @@ export const ProjectsListPage = ({ initialProjects }: ProjectsListPageProps) => 
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
               <LuFolderOpen className="h-12 w-12 text-muted-foreground/30" />
-              <p className="text-muted-foreground text-sm">Nenhum projeto encontrado.</p>
+              <p className="text-muted-foreground text-sm">
+                Nenhum projeto encontrado.
+              </p>
             </div>
           ) : view === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

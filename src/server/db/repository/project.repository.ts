@@ -67,7 +67,7 @@ class ProjectRepository {
     description?: string | null;
     userId: number;
   }): Promise<Project> {
-    console.log(data)
+    console.log(data);
     const [project] = await db.insert(projectTable).values(data).returning();
 
     return {
@@ -78,6 +78,40 @@ class ProjectRepository {
       userId: project.userId,
       tasks: [],
     };
+  }
+
+  async update(
+    id: number,
+    data: {
+      title?: string;
+      description?: string | null;
+    },
+  ): Promise<Project | null> {
+    const [updated] = await db
+      .update(projectTable)
+      .set(data)
+      .where(eq(projectTable.id, id))
+      .returning();
+
+    if (!updated) return null;
+
+    return {
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      createdAt: updated.createdAt,
+      userId: updated.userId,
+      tasks: [],
+    };
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const deleted = await db
+      .delete(projectTable)
+      .where(eq(projectTable.id, id))
+      .returning();
+
+    return deleted.length > 0;
   }
 }
 

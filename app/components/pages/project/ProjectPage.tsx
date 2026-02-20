@@ -1,17 +1,24 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
 import { LuFolderOpen } from "react-icons/lu";
 import { CiGrid41 } from "react-icons/ci";
 import { Project } from "@/app/types/Project";
 import { TaskForm } from "../../organisms/Modal/TaskForm";
 import { TaskBoard } from "../../organisms/TaskBoard/TaskBoard";
+import { useProject } from "@/src/client/services/project/useProject";
 import { ProjectHeaderInfo } from "../../organisms/ProjectHeader/ProjectHeaderInfo";
 
 interface ProjectPageProps {
   project: Project;
 }
 
-export const ProjectShowPage = ({ project }: ProjectPageProps) => {
+export const ProjectShowPage = ({ project: initialProject }: ProjectPageProps) => {
+  const { data: project = initialProject } = useProject(
+    initialProject.id,
+    initialProject,
+  );
+
   return (
     <div className="h-full flex flex-col bg-background">
       <div className="sticky top-0 z-10 bg-background border-b">
@@ -26,11 +33,11 @@ export const ProjectShowPage = ({ project }: ProjectPageProps) => {
               </Link>
             </div>
             <span>/</span>
+            {/* Atualiza automaticamente quando o título for editado */}
             <span className="text-foreground font-medium truncate max-w-37.5 md:max-w-none">
               {project.title}
             </span>
           </nav>
-
           <div className="flex items-center gap-2 md:gap-4 overflow-x-auto">
             <button className="flex items-center whitespace-nowrap bg-secondary text-secondary-foreground rounded p-2 text-sm md:text-base transition-all duration-150 hover:bg-secondary/90">
               <CiGrid41 className="mr-1 h-5 w-5 md:h-6 md:w-6" />
@@ -41,12 +48,10 @@ export const ProjectShowPage = ({ project }: ProjectPageProps) => {
           </div>
         </div>
       </div>
-
       <div className="flex-1 overflow-auto">
         <div className="p-4 md:p-6">
-          <ProjectHeaderInfo project={project}/>
-
-          {/* Client component — recebe os dados iniciais do SSR */}
+          <ProjectHeaderInfo project={project} />
+          {/* TaskBoard recebe project reativo do pai */}
           <TaskBoard initialProject={project} />
         </div>
       </div>

@@ -2,10 +2,7 @@ import { Project } from "@/app/types/Project";
 import { projectRepository } from "../repository/project.repository";
 
 class ProjectService {
-  async getProjectById(
-    projectId: number,
-    userId: number
-  ): Promise<Project> {
+  async getProjectById(projectId: number, userId: number): Promise<Project> {
     const project = await projectRepository.findById(projectId);
 
     if (!project) {
@@ -28,7 +25,7 @@ class ProjectService {
     data: {
       title: string;
       description?: string | null;
-    }
+    },
   ): Promise<Project> {
     if (!data.title || data.title.trim().length < 3) {
       throw new Error("Título deve ter no mínimo 3 caracteres");
@@ -41,6 +38,59 @@ class ProjectService {
     });
 
     return project;
+  }
+
+  async updateProject(
+    projectId: number,
+    userId: number,
+    data: {
+      title?: string;
+      description?: string | null;
+    },
+  ): Promise<Project> {
+    const project = await projectRepository.findById(projectId);
+
+    if (!project) {
+      throw new Error("Projeto não encontrado");
+    }
+
+    if (project.userId !== userId) {
+      throw new Error("Você não tem permissão para editar esse projeto");
+    }
+
+    if (data.title !== undefined) {
+      if (data.title.trim().length < 3) {
+        throw new Error("Título deve ter no mínimo 3 caracteres");
+      }
+
+      data.title = data.title.trim();
+    }
+
+    const updated = await projectRepository.update(projectId, data);
+
+    if (!updated) {
+      throw new Error("Erro ao atualizar projeto");
+    }
+
+    return updated;
+  }
+
+  async deleteProject(projectId: number, userId: number): Promise<void> {
+    const project = await projectRepository.findById(projectId);
+
+    if (!project) {
+      throw new Error("Projeto não encontrado");
+    }
+
+    if (project.userId !== userId) {
+      throw new Error("Você não tem permissão para deletar esse projeto");
+    }
+
+    const deleted = await projectRepository.delete(projectId);
+
+    if (!deleted) {
+      throw new Error("Erro ao deletar projeto");
+    }
   }
 }
 
