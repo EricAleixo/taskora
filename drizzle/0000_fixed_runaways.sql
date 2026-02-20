@@ -1,4 +1,4 @@
-CREATE TYPE "public"."status_task" AS ENUM('pending', 'completed', 'in_progress', 'cancelled');--> statement-breakpoint
+CREATE TYPE "public"."status_task" AS ENUM('pending', 'completed', 'in_progress', 'cancelled','review');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('ADMIN', 'USER');--> statement-breakpoint
 CREATE TYPE "public"."status_user" AS ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED');--> statement-breakpoint
 CREATE TABLE "task" (

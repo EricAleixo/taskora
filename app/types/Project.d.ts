@@ -1,3 +1,5 @@
+import { Task } from "./Task";
+
 export type Project = {
   id: number;
   title: string;
@@ -5,4 +7,5 @@ export type Project = {
   createdAt: Date;
   userId: number;
   tasks?: Task[];
+  isOptimistic?: boolean; // flag interna para optimistic update
 };

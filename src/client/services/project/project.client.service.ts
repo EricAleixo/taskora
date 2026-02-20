@@ -2,12 +2,12 @@ import { Project } from "@/app/types/Project";
 import { api } from "../api";
 
 export interface CreateProjectDTO {
-  name: string;
+  title: string;
   description?: string;
 }
 
 export interface UpdateProjectDTO {
-  name?: string;
+  title?: string;
   description?: string;
 }
 
@@ -17,7 +17,7 @@ export const ProjectClientService = {
     return data;
   },
 
-  async getById(id: string): Promise<Project> {
+  async getById(id: number): Promise<Project> {
     const { data } = await api.get<Project>(`/projects/${id}`);
     return data;
   },

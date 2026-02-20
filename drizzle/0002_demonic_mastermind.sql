@@ -1,0 +1,1 @@
+ALTER TYPE "public"."status_task" ADD VALUE 'review' BEFORE 'cancelled';

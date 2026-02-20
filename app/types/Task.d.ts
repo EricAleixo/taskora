@@ -1,12 +1,6 @@
-export type Task = {
-  id: number;
-  title: string;
-  description: string | null;
-  startTime: string | null;
-  endTime: string | null;
-  date: string;
-  duration: number | null;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  createdAt: Date;
-  project?: string;
+export type DbTask = typeof tasks.$inferSelect;
+
+// Tipo da aplicação
+export type Task = DbTask & {
+  isOptimistic?: boolean;
 };

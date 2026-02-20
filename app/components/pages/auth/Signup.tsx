@@ -1,5 +1,5 @@
-import { Logo } from "../atoms/Logo";
-import { FormSignUp } from "../organisms/Forms/FormSignUp";
+import { Logo } from "../../atoms/Logo";
+import { FormSignUp } from "../../organisms/Forms/FormSignUp";
  
 
 export const SignupPage = () => {

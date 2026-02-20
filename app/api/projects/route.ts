@@ -22,9 +22,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const session = await getServerSession(authOptions);
 
     const project = await projectService.createProject(
-      body.userId,
+      session!.user.id,
       {
         title: body.title,
         description: body.description,
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(project, { status: 201 });
   } catch (error: any) {
+    console.log(error.message)
     return NextResponse.json(
       { message: error.message },
       { status: 400 }

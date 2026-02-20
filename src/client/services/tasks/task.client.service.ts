@@ -9,11 +9,24 @@ export interface CreateTaskDTO {
   endTime?: string | null;
   duration?: number | null;
   projectId?: number;
+  status: "pending" | "completed" | "in_progress" | "cancelled" | "review";
 }
 
 export const TaskClientService = {
   async create(payload: CreateTaskDTO): Promise<Task> {
     const { data } = await api.post<Task>("/tasks", payload);
+    return data;
+  },
+
+  async list(): Promise<Task[]> {
+    const { data } = await api.get<Task[]>("/tasks");
+    return data;
+  },
+
+  async updateStatus(taskId: number, status: Task["status"]): Promise<Task> {
+    const { data } = await api.patch<Task>(`/tasks/${taskId}/status`, {
+      status,
+    });
     return data;
   },
 };

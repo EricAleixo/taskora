@@ -146,3 +146,12 @@
 button{
   cursor: pointer;
 }
+
+/* Adicione ao seu globals.css se não tiver o plugin tailwind-scrollbar-hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -60,7 +60,7 @@ export const TaskCard = ({
     <div className="mb-3 flex flex-wrap items-center gap-2">
       <TaskStatusBadge status={task.status} />
       {task.project && (
-        <span className="text-xs text-gray-500">{task.project}</span>
+        <span className="text-xs text-gray-500">{task.project.title}</span>
       )}
     </div>
 

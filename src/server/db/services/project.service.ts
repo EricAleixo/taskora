@@ -30,8 +30,6 @@ class ProjectService {
       description?: string | null;
     }
   ): Promise<Project> {
-    // 🔥 regra de negócio
-
     if (!data.title || data.title.trim().length < 3) {
       throw new Error("Título deve ter no mínimo 3 caracteres");
     }

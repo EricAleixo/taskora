@@ -1,50 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { MdAdd, MdClose } from "react-icons/md";
+import { LuPlus, LuX, LuFolderOpen } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
-import { useCreateTask } from "@/src/client/services/project/useCreateTask";
+import { useCreateProject } from "@/src/client/services/project/useCreateProject";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface AddTaskModalProps {
-  projectId: number;
-  /** "primary" = botão verde do header | "ghost" = botão sutil das colunas */
-  variant?: "primary" | "ghost";
+interface AddProjectModalProps {
+  label?: string;
 }
 
-// ─── Trigger variants ────────────────────────────────────────────────────────
-
-const TriggerPrimary = ({ onClick }: { onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center whitespace-nowrap bg-primary rounded p-2 text-primary-foreground text-sm md:text-base transition-all duration-150 hover:bg-primary/90"
-  >
-    <MdAdd className="mr-1 h-5 w-5 md:h-6 md:w-6" />
-    <span className="hidden sm:inline">Adicionar Tarefa</span>
-    <span className="sm:hidden">Nova</span>
-  </button>
-);
-
-const TriggerGhost = ({ onClick }: { onClick: () => void }) => (
-  <Button
-    variant="ghost"
-    className="w-full justify-start text-muted-foreground hover:text-foreground"
-    onClick={onClick}
-  >
-    <MdAdd className="mr-2 h-4 w-4" />
-    Adicionar
-  </Button>
-);
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalProps) => {
+export const AddProjectModal = ({ label = "Novo Projeto" }: AddProjectModalProps) => {
   const [open, setOpen] = useState(false);
 
-  const { mutateAsync, isPending } = useCreateTask(projectId);
+  const { mutateAsync, isPending } = useCreateProject();
 
-  const handleOpen  = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,9 +22,7 @@ export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalPro
 
     await mutateAsync({
       title:       data.get("title") as string,
-      description: (data.get("description") as string) || null,
-      date:        new Date().toISOString(),
-      projectId,
+      description: (data.get("description") as string) || undefined,
     });
 
     handleClose();
@@ -64,11 +31,14 @@ export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalPro
   return (
     <>
       {/* Trigger */}
-      {variant === "primary" ? (
-        <TriggerPrimary onClick={handleOpen} />
-      ) : (
-        <TriggerGhost onClick={handleOpen} />
-      )}
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center whitespace-nowrap bg-primary rounded p-2 text-primary-foreground text-sm md:text-base transition-all duration-150 hover:bg-primary/90 self-start md:self-auto"
+      >
+        <LuPlus className="mr-1 h-5 w-5" />
+        <span className="hidden sm:inline">{label}</span>
+        <span className="sm:hidden">Novo</span>
+      </button>
 
       {/* Modal */}
       {open && (
@@ -82,15 +52,15 @@ export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalPro
             <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
-                  <MdAdd className="h-5 w-5 text-primary" />
+                  <LuFolderOpen className="h-4 w-4 text-primary" />
                 </div>
-                <h2 className="font-semibold text-base text-foreground">Nova Tarefa</h2>
+                <h2 className="font-semibold text-base text-foreground">Novo Projeto</h2>
               </div>
               <button
                 onClick={handleClose}
                 className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                <MdClose className="h-5 w-5" />
+                <LuX className="h-5 w-5" />
               </button>
             </div>
 
@@ -108,7 +78,7 @@ export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalPro
                   required
                   minLength={3}
                   autoFocus
-                  placeholder="Ex: Revisar pull request"
+                  placeholder="Ex: Redesign do App"
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition"
                 />
               </div>
@@ -122,7 +92,7 @@ export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalPro
                   id="description"
                   name="description"
                   rows={3}
-                  placeholder="Detalhes adicionais (opcional)"
+                  placeholder="Detalhes sobre o projeto (opcional)"
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition resize-none"
                 />
               </div>
@@ -139,8 +109,8 @@ export const AddTaskModal = ({ projectId, variant = "primary" }: AddTaskModalPro
                   Cancelar
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isPending}>
-                  <MdAdd className="mr-1 h-4 w-4" />
-                  {isPending ? "Criando..." : "Criar Tarefa"}
+                  <LuPlus className="mr-1 h-4 w-4" />
+                  {isPending ? "Criando..." : "Criar Projeto"}
                 </Button>
               </div>
             </form>

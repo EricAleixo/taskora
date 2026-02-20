@@ -2,7 +2,6 @@ import { Task } from "@/app/types/Task";
 import { projectRepository } from "../repository/project.repository";
 import { taskRepository } from "../repository/task.repository";
 
-
 class TaskService {
   async getTaskById(id: number): Promise<Task> {
     const task = await taskRepository.findById(id);
@@ -12,6 +11,14 @@ class TaskService {
     }
 
     return task;
+  }
+
+  async getTasksByUser(userId: number): Promise<Task[]> {
+    if (!userId) {
+      throw new Error("Usuário inválido");
+    }
+
+    return taskRepository.findByUser(userId);
   }
 
   async getTasksByProject(projectId: number, userId: number): Promise<Task[]> {
@@ -38,6 +45,7 @@ class TaskService {
       endTime?: string | null;
       duration?: number | null;
       projectId?: number;
+      status?: "pending" | "completed" | "in_progress" | "cancelled";
     },
   ): Promise<Task> {
     if (!data.title || data.title.trim().length < 3) {
@@ -69,6 +77,7 @@ class TaskService {
       endTime: data.endTime ?? null,
       duration: data.duration ?? null,
       projectId: data.projectId ?? null,
+      status: data.status ?? null
     });
 
     return task;

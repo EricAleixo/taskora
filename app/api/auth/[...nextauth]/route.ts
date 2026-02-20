@@ -49,7 +49,6 @@ export const authOptions = {
 
         return true;
       } catch (error) {
-        console.error("Erro ao salvar usuário:", error);
         return false;
       }
     },
@@ -79,7 +78,6 @@ export const authOptions = {
           token.role = dbUser[0].role;
         }
 
-        console.log("TOKEN APÓS JWT:", token);
       }
       return token;
     },

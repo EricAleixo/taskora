@@ -1,4 +1,10 @@
 "use client";
+import dynamic from "next/dynamic";
+
+const UserDropdown = dynamic(
+  () => import("./UserDropDown").then(mod => mod.UserDropdown),
+  { ssr: false }
+);
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +55,7 @@ export const AppSidebar = ({ user }: AppSideBarI) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const { data, isPending, error } = useProjects();
 
-  if (error) return <p>Erro!</p>;
+  if (error) return null;
 
   return (
     <Sidebar className="border-r">
@@ -157,17 +163,24 @@ export const AppSidebar = ({ user }: AppSideBarI) => {
 
                 {/* Lista de Projetos */}
                 {isProjectsOpen && (
-                  <div className="ml-6 space-y-1 mt-2 mb-2">
-                    {data.map((project) => (
-                      <Link key={project.id} href={`/project/${project.id}`}>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start gap-2 h-8 px-2 text-sm font-normal"
-                        >
-                          <span>{project.title}</span>
-                        </Button>
-                      </Link>
-                    ))}
+                  <div className="ml-4 mt-1 mb-2 relative">
+                    {/* Linha vertical conectora */}
+                    <div className="absolute left-2 top-0 bottom-0 w-px bg-border" />
+
+                    <div className="space-y-0.5">
+                      {data.map((project, index) => (
+                        <Link key={project.id} href={`/projects/${project.id}`}>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start gap-2 h-8 px-2 text-sm font-normal relative pl-6 group"
+                          >
+                            {/* Linha horizontal conectora */}
+                            <span className="absolute left-2 top-1/2 w-3 h-px bg-border group-hover:bg-primary/50 transition-colors" />
+                            <span>{project.title}</span>
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -199,40 +212,7 @@ export const AppSidebar = ({ user }: AppSideBarI) => {
 
       <SidebarFooter className="border-t p-4">
         {user.image && user.name && user.email && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between gap-3 h-auto p-2"
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Avatar className="h-10 w-10 border">
-                    <AvatarImage src={user.image} />
-                    <AvatarFallback>
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col flex-1 min-w-0 text-left">
-                    <p className="font-semibold text-sm truncate">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-                <LuChevronUp className="h-4 w-4 shrink-0" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <LogOutBtn></LogOutBtn>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserDropdown user={user}/>
         )}
       </SidebarFooter>
     </Sidebar>

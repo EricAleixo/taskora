@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 export default async function RegisterLayout({children}: {children: ReactNode}){
 
     const session = await getServerSession(authOptions);
-    if(session?.user) return redirect("/dashboard");
+    if(session?.user) return redirect("/projects");
 
     return(
         <section className="h-screen w-screen">

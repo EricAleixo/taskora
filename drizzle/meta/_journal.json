@@ -15,6 +15,13 @@
       "when": 1771357600109,
       "tag": "0001_numerous_wendigo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771524121370,
+      "tag": "0002_demonic_mastermind",
+      "breakpoints": true
     }
   ]
 }

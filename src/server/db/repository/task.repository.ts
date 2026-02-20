@@ -1,7 +1,7 @@
 import { Task } from "@/app/types/Task";
 import { eq } from "drizzle-orm";
 import { db } from "..";
-import { taskTable } from "../schemas";
+import { projectTable, taskTable } from "../schemas";
 
 class TaskRepository {
   async findById(id: number): Promise<Task | null> {
@@ -28,6 +28,27 @@ class TaskRepository {
     };
   }
 
+  async findByUser(userId: number): Promise<Task[]> {
+    const result = await db
+      .select()
+      .from(taskTable)
+      .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+      .where(eq(projectTable.userId, userId));
+
+    return result.map(({ task, project }) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      startTime: task.startTime,
+      endTime: task.endTime,
+      date: task.date,
+      duration: task.duration,
+      status: task.status,
+      createdAt: task.createdAt,
+      project: project, // ou o objeto inteiro se preferir
+    }));
+  }
+
   async findByProject(projectId: number): Promise<Task[]> {
     const tasks = await db.query.taskTable.findMany({
       where: eq(taskTable.projectId, projectId),
@@ -47,41 +68,37 @@ class TaskRepository {
   }
 
   async create(data: {
-  title: string;
-  description?: string | null;
-  date: string;
-  startTime?: string | null;
-  endTime?: string | null;
-  duration?: number | null;
-  status?: Task["status"];
-  projectId?: number | null;
-}): Promise<Task> {
-  const [task] = await db
-    .insert(taskTable)
-    .values({
-      ...data,
-      status: data.status ?? "pending",
-    })
-    .returning();
+    title: string;
+    description?: string | null;
+    date: string;
+    startTime?: string | null;
+    endTime?: string | null;
+    duration?: number | null;
+    status?: Task["status"];
+    projectId?: number | null;
+  }): Promise<Task> {
+    const [task] = await db
+      .insert(taskTable)
+      .values({
+        ...data,
+        status: data.status ?? "pending",
+      })
+      .returning();
 
-  return {
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    startTime: task.startTime,
-    endTime: task.endTime,
-    date: task.date,
-    duration: task.duration,
-    status: task.status,
-    createdAt: task.createdAt,
-  };
-}
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      startTime: task.startTime,
+      endTime: task.endTime,
+      date: task.date,
+      duration: task.duration,
+      status: task.status,
+      createdAt: task.createdAt,
+    };
+  }
 
-
-  async updateStatus(
-    id: number,
-    status: Task["status"]
-  ): Promise<Task | null> {
+  async updateStatus(id: number, status: Task["status"]): Promise<Task | null> {
     const [updated] = await db
       .update(taskTable)
       .set({ status })

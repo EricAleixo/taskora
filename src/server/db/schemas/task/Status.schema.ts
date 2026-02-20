@@ -4,5 +4,6 @@ export const statusTaskEnum = pgEnum("status_task", [
     "pending",
     "completed",
     "in_progress",
+    "review",
     "cancelled"
 ])
