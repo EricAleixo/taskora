@@ -3,7 +3,8 @@ import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeleteProject } from "@/src/client/services/project/useDeleteProject";
 import { useState, useRef, useEffect } from "react";
-import { CheckSquare, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { CheckSquare, Pencil, Trash2, ListTodo } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   LuFolderOpen,
   LuSearch,
@@ -13,79 +14,10 @@ import {
 } from "react-icons/lu";
 import { MdTrendingUp } from "react-icons/md";
 import { Project } from "@/app/types/Project";
-import { AddProjectModal } from "../../organisms/Modal/AddProjectModal";
+import { ProjectModal } from "../../organisms/Modal/ProjectModal";
 import { useProjects } from "@/src/client/services/project/useProjects";
 import Link from "next/link";
 import { toastDeleteProject } from "../../molecules/ToastDeleteProject/ToastDeleteProject";
-
-// ─── Dropdown Menu ─────────────────────────────────────────────────────────────
-
-interface ProjectActionsDropdownProps {
-  projectId: number;
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-const ProjectActionsDropdown = ({
-  projectId,
-  onEdit,
-  onDelete,
-}: ProjectActionsDropdownProps) => {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    if (open) document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative" onClick={(e) => e.preventDefault()}>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 rounded-lg hover:bg-muted text-muted-foreground"
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-37.5 bg-popover border border-border rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-              onEdit();
-            }}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-          >
-            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-            Editar projeto
-          </button>
-          <div className="h-px bg-border mx-2" />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-              onDelete();
-            }}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Excluir projeto
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
 
 // ─── Delete Confirm Dialog ──────────────────────────────────────────────────────
 
@@ -152,13 +84,71 @@ const ProgressBar = ({ value }: { value: number }) => (
   </div>
 );
 
-const ProjectCard = ({
+// ─── Action Bar ───────────────────────────────────────────────────────────────
+
+const ProjectActionBar = ({
   project,
-  onEdit,
   onDelete,
 }: {
   project: Project;
-  onEdit: () => void;
+  onDelete: () => void;
+}) => (
+  <div className="flex items-center gap-2 px-5 py-3 bg-muted/50 border-t border-border rounded-b-xl animate-in fade-in slide-in-from-top-1 duration-150">
+    <Link
+      href={`/projects/${project.id}`}
+      onClick={(e) => e.stopPropagation()}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+    >
+      <ListTodo className="h-3.5 w-3.5" />
+      Tarefas
+    </Link>
+
+    {/* Edit — usa o trigger customizado para manter o estilo do action bar */}
+    <ProjectModal
+      mode="edit"
+      initialData={{
+        id: String(project.id),
+        title: project.title,
+        description: project.description ?? undefined,
+      }}
+      trigger={(open) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            open();
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card border border-border text-foreground hover:bg-muted transition-colors"
+        >
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          Editar
+        </button>
+      )}
+    />
+
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onDelete();
+      }}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card border border-border text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+      Excluir
+    </button>
+  </div>
+);
+
+// ─── Project Card ─────────────────────────────────────────────────────────────
+
+const ProjectCard = ({
+  project,
+  expanded,
+  onToggle,
+  onDelete,
+}: {
+  project: Project;
+  expanded: boolean;
+  onToggle: () => void;
   onDelete: () => void;
 }) => {
   const total = project.tasks?.length ?? 0;
@@ -169,51 +159,140 @@ const ProjectCard = ({
 
   return (
     <div
-      className="group relative bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-primary/30 flex flex-col gap-4"
+      className={`group relative bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col ${expanded ? "border-primary/40" : "hover:border-primary/30"}`}
       style={{ opacity: project.isOptimistic ? 0.5 : 1 }}
+      onClick={onToggle}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 bg-primary" />
-          <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors">
-            {project.title}
-          </h3>
+      {/* Card body */}
+      <div className="p-5 flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 bg-primary" />
+            <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors">
+              {project.title}
+            </h3>
+          </div>
+          {isDone && (
+            <div className="bg-emerald-500/10 text-emerald-600 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20">
+              Concluído
+            </div>
+          )}
         </div>
-        <ProjectActionsDropdown
-          projectId={project.id}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+
+        {project.description && (
+          <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
+            {project.description}
+          </p>
+        )}
+
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Progresso</span>
+            <span
+              className={`font-medium ${isDone ? "text-emerald-500" : "text-foreground"}`}
+            >
+              {progress}%
+            </span>
+          </div>
+          <ProgressBar value={progress} />
+        </div>
+
+        <div className="flex items-center justify-between pt-1 border-t border-border">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <CheckSquare className="h-3.5 w-3.5" />
+            <span className="text-xs">
+              {done}/{total} tarefas
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <LuCalendar className="h-3.5 w-3.5" />
+            <span className="text-xs">
+              {new Date(project.createdAt).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+              })}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {project.description && (
-        <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
-          {project.description}
-        </p>
-      )}
+      {/* Action bar */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="action-bar"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <ProjectActionBar project={project} onDelete={onDelete} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Progresso</span>
+// ─── Project Row ──────────────────────────────────────────────────────────────
+
+const ProjectRow = ({
+  project,
+  expanded,
+  onToggle,
+  onDelete,
+}: {
+  project: Project;
+  expanded: boolean;
+  onToggle: () => void;
+  onDelete: () => void;
+}) => {
+  const total = project.tasks?.length ?? 0;
+  const done =
+    project.tasks?.filter((t) => t.status === "completed").length ?? 0;
+  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+  const isDone = total > 0 && progress === 100;
+
+  return (
+    <div
+      className={`group bg-card border border-border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col ${expanded ? "rounded-t-xl border-primary/40" : "rounded-xl hover:border-primary/30"}`}
+      style={{ opacity: project.isOptimistic ? 0.5 : 1 }}
+      onClick={onToggle}
+    >
+      <div className="flex items-center gap-4 px-5 py-4">
+        <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-primary" />
+
+        <div className="flex-1 min-w-0">
+          <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate block">
+            {project.title}
+          </span>
+          {project.description && (
+            <span className="text-xs text-muted-foreground truncate block">
+              {project.description}
+            </span>
+          )}
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 w-36 shrink-0">
+          <ProgressBar value={progress} />
           <span
-            className={`font-medium ${isDone ? "text-emerald-500" : "text-foreground"}`}
+            className={`text-xs font-medium shrink-0 ${isDone ? "text-emerald-500" : "text-muted-foreground"}`}
           >
             {progress}%
           </span>
         </div>
-        <ProgressBar value={progress} />
-      </div>
 
-      <div className="flex items-center justify-between pt-1 border-t border-border">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
+        <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground shrink-0">
           <CheckSquare className="h-3.5 w-3.5" />
           <span className="text-xs">
-            {done}/{total} tarefas
+            {done}/{total}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-muted-foreground">
+
+        <div className="flex items-center gap-1.5 text-muted-foreground shrink-0">
           <LuCalendar className="h-3.5 w-3.5" />
-          <span className="text-xs">
+          <span className="text-xs hidden sm:block">
             {new Date(project.createdAt).toLocaleDateString("pt-BR", {
               day: "2-digit",
               month: "short",
@@ -222,82 +301,26 @@ const ProjectCard = ({
         </div>
       </div>
 
-      {isDone && (
-        <div className="absolute top-3 right-3 bg-emerald-500/10 text-emerald-600 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20">
-          Concluído
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ProjectRow = ({
-  project,
-  onEdit,
-  onDelete,
-}: {
-  project: Project;
-  onEdit: () => void;
-  onDelete: () => void;
-}) => {
-  const total = project.tasks?.length ?? 0;
-  const done =
-    project.tasks?.filter((t) => t.status === "completed").length ?? 0;
-  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-  const isDone = total > 0 && progress === 100;
-
-  return (
-    <div
-      className="group flex items-center gap-4 bg-card border border-border rounded-xl px-5 py-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-primary/30"
-      style={{ opacity: project.isOptimistic ? 0.5 : 1 }}
-    >
-      <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-primary" />
-
-      <div className="flex-1 min-w-0">
-        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate block">
-          {project.title}
-        </span>
-        {project.description && (
-          <span className="text-xs text-muted-foreground truncate block">
-            {project.description}
-          </span>
+      {/* Action bar */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="action-bar"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <ProjectActionBar project={project} onDelete={onDelete} />
+          </motion.div>
         )}
-      </div>
-
-      <div className="hidden md:flex items-center gap-2 w-36 shrink-0">
-        <ProgressBar value={progress} />
-        <span
-          className={`text-xs font-medium shrink-0 ${isDone ? "text-emerald-500" : "text-muted-foreground"}`}
-        >
-          {progress}%
-        </span>
-      </div>
-
-      <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground shrink-0">
-        <CheckSquare className="h-3.5 w-3.5" />
-        <span className="text-xs">
-          {done}/{total}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-1.5 text-muted-foreground shrink-0">
-        <LuCalendar className="h-3.5 w-3.5" />
-        <span className="text-xs hidden sm:block">
-          {new Date(project.createdAt).toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "short",
-          })}
-        </span>
-      </div>
-
-      <ProjectActionsDropdown
-        projectId={project.id}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      </AnimatePresence>
     </div>
   );
 };
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
 
 const StatCard = ({
   label,
@@ -335,6 +358,7 @@ export const ProjectsListPage = ({
   const [view, setView] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -342,7 +366,6 @@ export const ProjectsListPage = ({
 
   const { data: projects = [] } = useProjects(initialProjects);
 
-  // Mostra toast quando vindo do ProjectHeader com ?deleted=true
   const deletedToastShown = useRef(false);
 
   useEffect(() => {
@@ -356,6 +379,19 @@ export const ProjectsListPage = ({
       router.replace(url.pathname + url.search, { scroll: false });
     }
   }, [searchParams, router]);
+
+  // Collapse expanded card when clicking outside
+  useEffect(() => {
+    if (expandedId === null) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-project-item]")) {
+        setExpandedId(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [expandedId]);
 
   const filtered = projects.filter(
     (p) =>
@@ -378,23 +414,18 @@ export const ProjectsListPage = ({
     return total > 0 && done === total;
   }).length;
 
-  const handleEdit = (project: Project) => {
-    // TODO: abrir modal de edição com project
-    console.log("edit", project.id);
-  };
-
   const handleDelete = (project: Project) => {
     setDeleteTarget(project);
   };
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
-
     deleteProject(
       { id: String(deleteTarget.id) },
       {
         onSuccess: () => {
           setDeleteTarget(null);
+          setExpandedId(null);
         },
         onError: () => {
           toast.error("Erro ao deletar projeto");
@@ -403,9 +434,12 @@ export const ProjectsListPage = ({
     );
   };
 
+  const toggleExpand = (id: number) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Delete confirm dialog */}
       <DeleteConfirmDialog
         open={!!deleteTarget}
         projectTitle={deleteTarget?.title ?? ""}
@@ -420,7 +454,7 @@ export const ProjectsListPage = ({
             <LuFolderOpen className="h-5 w-5 md:h-7 md:w-7" />
             <span className="text-foreground font-medium">Projetos</span>
           </nav>
-          <AddProjectModal label="Novo Projeto" />
+          <ProjectModal mode="create" label="Novo Projeto" />
         </div>
       </div>
 
@@ -488,25 +522,27 @@ export const ProjectsListPage = ({
           ) : view === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {filtered.map((project) => (
-                <Link key={project.id} href={`/projects/${project.id}`}>
+                <div key={project.id} data-project-item>
                   <ProjectCard
                     project={project}
-                    onEdit={() => handleEdit(project)}
+                    expanded={expandedId === project.id}
+                    onToggle={() => toggleExpand(project.id)}
                     onDelete={() => handleDelete(project)}
                   />
-                </Link>
+                </div>
               ))}
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               {filtered.map((project) => (
-                <Link key={project.id} href={`/projects/${project.id}`}>
+                <div key={project.id} data-project-item>
                   <ProjectRow
                     project={project}
-                    onEdit={() => handleEdit(project)}
+                    expanded={expandedId === project.id}
+                    onToggle={() => toggleExpand(project.id)}
                     onDelete={() => handleDelete(project)}
                   />
-                </Link>
+                </div>
               ))}
             </div>
           )}

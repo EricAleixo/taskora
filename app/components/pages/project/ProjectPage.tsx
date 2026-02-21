@@ -8,6 +8,8 @@ import { TaskForm } from "../../organisms/Modal/TaskForm";
 import { TaskBoard } from "../../organisms/TaskBoard/TaskBoard";
 import { useProject } from "@/src/client/services/project/useProject";
 import { ProjectHeaderInfo } from "../../organisms/ProjectHeader/ProjectHeaderInfo";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface ProjectPageProps {
   project: Project;
@@ -44,7 +46,12 @@ export const ProjectShowPage = ({ project: initialProject }: ProjectPageProps) =
               <span className="hidden sm:inline">Todos os projetos</span>
               <span className="sm:hidden">Projetos</span>
             </button>
-            <TaskForm projectId={project.id} />
+            <TaskForm projectId={project.id}>
+              <Button className="font-semibold">
+                <Plus></Plus>
+                Adicionar Tarefa
+              </Button>
+            </TaskForm>
           </div>
         </div>
       </div>

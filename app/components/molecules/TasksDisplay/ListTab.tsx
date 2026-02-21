@@ -37,10 +37,11 @@ const statusConfig: Record<
 const STATUS_ORDER = ["pending", "in_progress", "review", "completed"];
 
 export const ListTab = ({ project }: ListTabProps) => {
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const tasks: Task[] = project.tasks ?? [];
 
-  const tasks: any[] = project.tasks ?? [];
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [creatingTask, setCreatingTask] = useState(false);
 
   const filtered =
     activeFilter === "all"
@@ -114,7 +115,7 @@ export const ListTab = ({ project }: ListTabProps) => {
           <ul>
             {sorted.map((task, idx) => (
               <TaskItem
-                key={idx}
+                key={task.id ?? idx}
                 task={task}
                 isLast={idx === sorted.length - 1}
                 statusConfig={statusConfig}
@@ -125,7 +126,10 @@ export const ListTab = ({ project }: ListTabProps) => {
         )}
 
         {/* Add task row */}
-        <button className="w-full flex items-center gap-2.5 px-5 py-3.5 border-t border-border text-sm text-muted-foreground hover:bg-muted/30 hover:text-foreground transition-colors group">
+        <button
+          onClick={() => setCreatingTask(true)}
+          className="w-full flex items-center gap-2.5 px-5 py-3.5 border-t border-border text-sm text-muted-foreground hover:bg-muted/30 hover:text-foreground transition-colors group"
+        >
           <Plus
             size={15}
             className="text-muted-foreground group-hover:text-foreground transition-colors"
@@ -133,23 +137,36 @@ export const ListTab = ({ project }: ListTabProps) => {
           Adicionar tarefa
         </button>
       </div>
-      {editingTask && (
-        <TaskForm
-          projectId={project.id}
-          mode="update"
-          defaultOpen={true}
-          initialValues={{
-            title: editingTask.title,
-            description: editingTask.description,
-            date: editingTask.date,
-            startTime: editingTask.startTime,
-            endTime: editingTask.endTime,
-            status: editingTask.status,
-          }}
-          onClose={() => setEditingTask(null)}
-          onSubmit={() => setEditingTask(null)} // fecha ao salvar
-        />
-      )}
+
+      {/* Modal: criar */}
+      <TaskForm
+        projectId={project.id}
+        mode="create"
+        open={creatingTask}
+        onClose={() => setCreatingTask(false)}
+      />
+
+      {/* Modal: editar */}
+      <TaskForm
+        projectId={project.id}
+        mode="update"
+        taskId={editingTask?.id}
+        open={!!editingTask}
+        initialValues={
+          editingTask
+            ? {
+                title: editingTask.title,
+                description: editingTask.description,
+                date: editingTask.date,
+                startTime: editingTask.startTime,
+                endTime: editingTask.endTime,
+                status: editingTask.status,
+              }
+            : undefined
+        }
+        onClose={() => setEditingTask(null)}
+        onDelete={() => setEditingTask(null)}
+      />
     </div>
   );
 };

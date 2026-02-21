@@ -77,7 +77,7 @@ class TaskService {
       endTime: data.endTime ?? null,
       duration: data.duration ?? null,
       projectId: data.projectId ?? null,
-      status: data.status ?? null
+      status: data.status ?? null,
     });
 
     return task;
@@ -104,6 +104,44 @@ class TaskService {
     }
 
     return updated;
+  }
+
+  async updateTask(
+    taskId: number,
+    data: Partial<{
+      title: string;
+      description: string | null;
+      date: string;
+      startTime: string | null;
+      endTime: string | null;
+      duration: number | null;
+      projectId: number | null;
+      status: Task["status"];
+    }>,
+  ): Promise<Task> {
+    const task = await taskRepository.findById(taskId);
+
+    if (!task) {
+      throw new Error("Tarefa não encontrada");
+    }
+
+    const updated = await taskRepository.update(taskId, data);
+
+    if (!updated) {
+      throw new Error("Erro ao atualizar tarefa");
+    }
+
+    return updated;
+  }
+
+  async deleteTask(taskId: number): Promise<void> {
+    const task = await taskRepository.findById(taskId);
+
+    if (!task) {
+      throw new Error("Tarefa não encontrada");
+    }
+
+    await taskRepository.delete(taskId);
   }
 }
 

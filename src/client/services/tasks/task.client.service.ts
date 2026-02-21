@@ -1,5 +1,5 @@
 import { Task } from "@/app/types/Task";
-import { api } from "../api"; // mesmo padrão do ProjectClientService
+import { api } from "../api";
 
 export interface CreateTaskDTO {
   title: string;
@@ -10,6 +10,17 @@ export interface CreateTaskDTO {
   duration?: number | null;
   projectId?: number;
   status: "pending" | "completed" | "in_progress" | "cancelled" | "review";
+}
+
+export interface UpdateTaskDTO {
+  title?: string;
+  description?: string | null;
+  date?: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  duration?: number | null;
+  projectId?: number | null;
+  status?: Task["status"];
 }
 
 export const TaskClientService = {
@@ -28,5 +39,16 @@ export const TaskClientService = {
       status,
     });
     return data;
+  },
+
+  // ✅ UPDATE COMPLETO
+  async update(taskId: number, payload: UpdateTaskDTO): Promise<Task> {
+    const { data } = await api.patch<Task>(`/tasks/${taskId}`, payload);
+    return data;
+  },
+
+  // ✅ DELETE
+  async delete(taskId: number): Promise<void> {
+    await api.delete(`/tasks/${taskId}`);
   },
 };

@@ -119,6 +119,20 @@ class TaskRepository {
       createdAt: updated.createdAt,
     };
   }
+
+  async update(id: number, data: Partial<Task>): Promise<Task | null> {
+    const updated = await db
+      .update(taskTable)
+      .set(data)
+      .where(eq(taskTable.id, id))
+      .returning();
+
+    return updated[0] ?? null;
+  }
+
+  async delete(id: number): Promise<void> {
+    await db.delete(taskTable).where(eq(taskTable.id, id));
+  }
 }
 
 export const taskRepository = new TaskRepository();

@@ -7,6 +7,8 @@ import { MdMoreHoriz } from "react-icons/md";
 import { LuPlus, LuChevronRight } from "react-icons/lu";
 import { useRef, useState, useEffect } from "react";
 import { TaskForm } from "../../organisms/Modal/TaskForm";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface BoardTabProps {
   project: any;
@@ -22,14 +24,16 @@ type TaskStatus =
 const statusColors: Record<string, string> = {
   "Para Fazer": "bg-amber-400",
   "Em Progresso": "bg-blue-400",
-  "Revisando": "bg-purple-400",
-  "Finalizada": "bg-green-400",
+  Revisando: "bg-purple-400",
+  Finalizada: "bg-green-400",
 };
 
 const ColumnHeader = ({ title, count }: { title: string; count: number }) => (
   <div className="w-full flex items-center justify-between mb-4">
     <div className="flex items-center gap-2">
-      <span className={`w-2 h-2 rounded-full ${statusColors[title] ?? "bg-gray-400"}`} />
+      <span
+        className={`w-2 h-2 rounded-full ${statusColors[title] ?? "bg-gray-400"}`}
+      />
       <h3 className="font-semibold">{title}</h3>
       <div className="flex items-center gap-1">
         <div className="w-1 h-1 bg-gray-400 rounded-full" />
@@ -80,7 +84,15 @@ const Column = ({
             </motion.div>
           ))}
         </AnimatePresence>
-        <TaskForm projectId={projectId} variant="ghost"/>
+        <TaskForm projectId={projectId}>
+          <Button
+            className="text-gray-600 w-full justify-start"
+            variant={"ghost"}
+          >
+            <Plus></Plus>
+            Adicionar
+          </Button>
+        </TaskForm>
       </div>
     </ScrollArea>
   </div>
@@ -217,7 +229,10 @@ const MobileBoardScroll = ({
       </div>
 
       {/* Dot progress indicators */}
-      <MobileDotIndicators total={columnDefs.length} activeIndex={activeIndex} />
+      <MobileDotIndicators
+        total={columnDefs.length}
+        activeIndex={activeIndex}
+      />
     </div>
   );
 };
@@ -226,10 +241,26 @@ export const BoardTab = ({ project }: BoardTabProps) => {
   const columns = classifyTasks(project.tasks ?? []);
 
   const columnDefs = [
-    { title: "Para Fazer", tasks: columns.toDo, defaultStatus: "pending" as TaskStatus },
-    { title: "Em Progresso", tasks: columns.inProgress, defaultStatus: "in_progress" as TaskStatus },
-    { title: "Revisando", tasks: columns.review, defaultStatus: "review" as TaskStatus },
-    { title: "Finalizada", tasks: columns.done, defaultStatus: "completed" as TaskStatus },
+    {
+      title: "Para Fazer",
+      tasks: columns.toDo,
+      defaultStatus: "pending" as TaskStatus,
+    },
+    {
+      title: "Em Progresso",
+      tasks: columns.inProgress,
+      defaultStatus: "in_progress" as TaskStatus,
+    },
+    {
+      title: "Revisando",
+      tasks: columns.review,
+      defaultStatus: "review" as TaskStatus,
+    },
+    {
+      title: "Finalizada",
+      tasks: columns.done,
+      defaultStatus: "completed" as TaskStatus,
+    },
   ];
 
   return (
