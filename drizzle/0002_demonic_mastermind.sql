@@ -1,1 +1,1 @@
-ALTER TYPE "public"."status_task" ADD VALUE 'review' BEFORE 'cancelled';
+ALTER TYPE "status_task" ADD VALUE 'review';

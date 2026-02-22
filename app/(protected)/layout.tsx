@@ -4,19 +4,23 @@ import { AppSidebar } from "../components/organisms/AppSideBar/AppSideBar";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "../api/auth/[...nextauth]/route";
+import { ProfileGate } from "../components/guards/ProfileGate";
 
-export default async function ProjectLayout({children}: {children: ReactNode}) {
+export default async function ProjectLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await getServerSession(authOptions);
 
-    const session = await getServerSession(authOptions);
-
-    if(!session?.user) return redirect("/login");
+  if (!session?.user) return redirect("/login");
 
   return (
-    <SidebarProvider>
-      <AppSidebar user={session.user} />
-      <main className="w-full">
-        {children}
-      </main>
-    </SidebarProvider>
+    <ProfileGate>
+      <SidebarProvider>
+        <AppSidebar user={session.user} />
+        <main className="w-full">{children}</main>
+      </SidebarProvider>
+    </ProfileGate>
   );
 }
