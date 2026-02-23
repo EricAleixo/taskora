@@ -1,5 +1,5 @@
 export type User = {
-  id: number;
+  id: string;
   email: string;
   role: "USER" | "ADMIN";
   createdAt: Date;

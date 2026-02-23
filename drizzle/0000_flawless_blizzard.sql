@@ -1,8 +1,8 @@
-CREATE TYPE "public"."status_task" AS ENUM('pending', 'completed', 'in_progress', 'cancelled','review');--> statement-breakpoint
+CREATE TYPE "public"."status_task" AS ENUM('pending', 'completed', 'in_progress', 'review', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('ADMIN', 'USER');--> statement-breakpoint
 CREATE TYPE "public"."status_user" AS ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED');--> statement-breakpoint
 CREATE TABLE "task" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(80) NOT NULL,
 	"description" varchar(500),
 	"start_time" time,
@@ -10,21 +10,26 @@ CREATE TABLE "task" (
 	"date" date NOT NULL,
 	"duration" integer,
 	"status" "status_task" DEFAULT 'pending' NOT NULL,
-	"project_id" integer,
+	"project_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "profile" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"avatar_url" varchar(255),
-	"timezone" varchar(50) DEFAULT 'America/Sao_Paulo',
+	"bio" varchar(255),
+	"timezone" varchar(50) DEFAULT 'America/Sao_Paulo' NOT NULL,
+	"theme" varchar(20) DEFAULT 'system' NOT NULL,
+	"receive_email_notifications" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "profile_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "user" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" varchar(150) NOT NULL,
 	"password" varchar(255),
 	"role" "role" DEFAULT 'USER' NOT NULL,
@@ -32,11 +37,20 @@ CREATE TABLE "user" (
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+CREATE TABLE "otp_codes" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"email" text NOT NULL,
+	"password_hash" text NOT NULL,
+	"code" text NOT NULL,
+	"expires_at" timestamp NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "project" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(100) NOT NULL,
 	"description" varchar(500),
-	"user_id" integer NOT NULL,
+	"user_id" uuid NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint

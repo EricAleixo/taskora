@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,26 @@ interface ProfilePageProps {
   userEmail?: string;
 }
 
+// ── Helpers de tema (sem next-themes) ─────────────────────────────────────────
+
+type Theme = "light" | "dark" | "system";
+
+/**
+ * Aplica o tema diretamente na classe do <html>.
+ * NÃO persiste nada — só visual.
+ */
+function applyThemeClass(theme: Theme) {
+  const root = document.documentElement;
+  root.classList.remove("light", "dark");
+
+  if (theme === "system") {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.classList.add(prefersDark ? "dark" : "light");
+  } else {
+    root.classList.add(theme);
+  }
+}
+
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
 const Section = ({
@@ -93,7 +113,9 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
   const { data, isPending } = useCurrentProfile();
   const { mutateAsync: updateProfile } = useUpdateProfile();
   const { mutateAsync: uploadAvatar, isPending: isUploading } = useUploadAvatar();
-  const { setTheme } = useTheme();
+
+  // useSession para poder chamar update() e atualizar o JWT sem logout
+  const { update: updateSession } = useSession();
 
   const [saved, setSaved] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -121,7 +143,8 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
     if (!data || hasLoadedProfile.current) return;
     hasLoadedProfile.current = true;
 
-    const profileTheme = data.profile.theme;
+    const profileTheme = (data.profile.theme ?? "system") as Theme;
+    console.log(profileTheme)
 
     reset({
       name: data.profile.name ?? "",
@@ -132,9 +155,17 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
       receiveEmailNotifications: data.profile.receiveEmailNotifications ?? true,
     });
 
-    setTheme(profileTheme);
-    document.cookie = `theme=${profileTheme}; path=/; max-age=31536000; SameSite=Lax`;
-  }, [data, reset, setTheme]);
+    // Aplica o tema salvo no token (já aplicado pelo script do layout, mas garante sync)
+    applyThemeClass(profileTheme);
+
+    // 🔑 Guarda o tema original (do token) para reverter ao sair sem salvar
+    const originalTheme = profileTheme;
+
+    return () => {
+      // Sai sem salvar → reverte a classe pro tema que está no token
+      applyThemeClass(originalTheme);
+    };
+  }, [data, reset]);
 
   if (isPending) {
     return (
@@ -159,29 +190,19 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
         .toUpperCase()
     : "?";
 
-  const handleThemeChange = (t: "light" | "dark" | "system") => {
+  // Preview visual apenas — NÃO persiste nada no token nem em cookie
+  const handleThemeChange = (t: Theme) => {
     animateThemeChange(() => {
-      setTheme(t);
-      setValue("theme", t);
-      document.cookie = `theme=${t}; path=/; max-age=31536000; SameSite=Lax`;
+      applyThemeClass(t);   // só muda a classe do <html>
+      setValue("theme", t); // atualiza o form
     });
   };
 
   // ── Avatar crop + upload ───────────────────────────────────────────────────
 
-  /**
-   * Chamado pelo AvatarCropModal com o Blob recortado.
-   * Faz upload para o Cloudinary via Route Handler e atualiza o form.
-   */
   const handleAvatarCrop = async (blob: Blob) => {
     const currentAvatarUrl = avatarUrl || undefined;
-
-    const newUrl = await uploadAvatar({
-      blob,
-      oldUrl: currentAvatarUrl,
-    });
-
-    // Atualiza o campo do form — será persistido junto com o restante no onSubmit
+    const newUrl = await uploadAvatar({ blob, oldUrl: currentAvatarUrl });
     setValue("avatarUrl", newUrl, { shouldDirty: true });
   };
 
@@ -195,7 +216,12 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
       data: formData,
     });
 
-    document.cookie = `theme=${formData.theme}; path=/; max-age=31536000; SameSite=Lax`;
+    // ✅ Só aqui atualiza o token JWT com o novo tema
+    // O callback jwt() no NextAuth intercepta trigger === "update" e grava token.theme
+    await updateSession({ theme: formData.theme });
+
+    // Aplica visualmente (já estava em preview, mas confirma)
+    applyThemeClass(formData.theme as Theme);
 
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -265,7 +291,6 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
                   </AvatarFallback>
                 </Avatar>
 
-                {/* Overlay de upload / loading */}
                 <button
                   type="button"
                   onClick={() => setCropModalOpen(true)}
@@ -286,9 +311,7 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
                 <p className="text-xs text-muted-foreground">
                   Clique na foto para recortar e enviar
                 </p>
-                {/* Campo oculto — o valor é gerenciado pelo hook de upload */}
                 <input type="hidden" {...register("avatarUrl")} />
-                {/* Exibe a URL atual somente leitura para transparência */}
                 {avatarUrl && (
                   <p className="text-xs text-muted-foreground truncate max-w-xs">
                     {avatarUrl}

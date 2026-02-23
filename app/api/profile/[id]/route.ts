@@ -1,16 +1,13 @@
+import { Params } from "@/app/types/App";
 import { profileService } from "@/src/server/db/services/profile.service";
 import { NextResponse } from "next/server";
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
 
 export async function GET(_: Request, { params }: Params) {
   try {
+    const { id } = await params;
     const profile = await profileService.getProfileById(
-      Number(params.id)
+      id
     );
 
     return NextResponse.json(profile);
@@ -28,7 +25,7 @@ export async function PUT(request: Request, { params }: Params) {
     const { id } = await params;
 
     const profile = await profileService.updateProfile(
-      Number(id),
+      id,
       body
     );
 
@@ -43,8 +40,9 @@ export async function PUT(request: Request, { params }: Params) {
 
 export async function DELETE(_: Request, { params }: Params) {
   try {
+    const { id } = await params;
     const profile = await profileService.deleteProfile(
-      Number(params.id)
+      id
     );
 
     return NextResponse.json(profile);

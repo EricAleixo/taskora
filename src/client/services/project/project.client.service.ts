@@ -17,7 +17,7 @@ export const ProjectClientService = {
     return data;
   },
 
-  async getById(id: number): Promise<Project> {
+  async getById(id: string): Promise<Project> {
     const { data } = await api.get<Project>(`/projects/${id}`);
     return data;
   },

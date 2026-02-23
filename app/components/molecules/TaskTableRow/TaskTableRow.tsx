@@ -29,7 +29,7 @@ export const TaskTableRow = ({
       </div>
     </TableCell>
     <TableCell className="text-sm text-muted-foreground">
-      {task.project.title || "—"}
+      {task?.project?.title || "—"}
     </TableCell>
     <TableCell>
       <TaskStatusBadge status={task.status} />

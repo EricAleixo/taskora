@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
     const user = await getUserAuthenticate();
 
-    const profile = await profileService.createProfile(Number(user.id),body);
+    const profile = await profileService.createProfile(user.id,body);
 
     return NextResponse.json(profile, { status: 201 });
   } catch (error: any) {

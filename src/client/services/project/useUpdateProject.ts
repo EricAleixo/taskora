@@ -15,7 +15,7 @@ export const useUpdateProject = () => {
 
     onSuccess: (updatedProject, variables) => {
   queryClient.setQueryData(
-    ["project", Number(variables.id)],
+    ["project", variables.id],
     (old: Project | undefined) => ({
       ...old,
       ...updatedProject,

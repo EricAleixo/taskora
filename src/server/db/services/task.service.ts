@@ -3,7 +3,7 @@ import { projectRepository } from "../repository/project.repository";
 import { taskRepository } from "../repository/task.repository";
 
 class TaskService {
-  async getTaskById(id: number): Promise<Task> {
+  async getTaskById(id: string): Promise<Task> {
     const task = await taskRepository.findById(id);
 
     if (!task) {
@@ -13,7 +13,7 @@ class TaskService {
     return task;
   }
 
-  async getTasksByUser(userId: number): Promise<Task[]> {
+  async getTasksByUser(userId: string): Promise<Task[]> {
     if (!userId) {
       throw new Error("Usuário inválido");
     }
@@ -21,7 +21,7 @@ class TaskService {
     return taskRepository.findByUser(userId);
   }
 
-  async getTasksByProject(projectId: number, userId: number): Promise<Task[]> {
+  async getTasksByProject(projectId: string, userId: string): Promise<Task[]> {
     const project = await projectRepository.findById(projectId);
 
     if (!project) {
@@ -36,15 +36,15 @@ class TaskService {
   }
 
   async createTask(
-    userId: number,
+    userId: string,
     data: {
       title: string;
       description?: string | null;
       date: string;
       startTime?: string | null;
       endTime?: string | null;
-      duration?: number | null;
-      projectId?: number;
+      duration?: string | null;
+      projectId?: string;
       status?: "pending" | "completed" | "in_progress" | "cancelled";
     },
   ): Promise<Task> {
@@ -75,7 +75,7 @@ class TaskService {
       date: data.date,
       startTime: data.startTime ?? null,
       endTime: data.endTime ?? null,
-      duration: data.duration ?? null,
+      duration: data.duration ? Number(data.duration) : null,
       projectId: data.projectId ?? null,
       status: data.status ?? null,
     });
@@ -84,7 +84,7 @@ class TaskService {
   }
 
   async updateTaskStatus(
-    taskId: number,
+    taskId: string,
     status: Task["status"],
   ): Promise<Task> {
     const task = await taskRepository.findById(taskId);
@@ -107,15 +107,15 @@ class TaskService {
   }
 
   async updateTask(
-    taskId: number,
+    taskId: string,
     data: Partial<{
       title: string;
       description: string | null;
       date: string;
       startTime: string | null;
       endTime: string | null;
-      duration: number | null;
-      projectId: number | null;
+      duration: string | null;
+      projectId: string | null;
       status: Task["status"];
     }>,
   ): Promise<Task> {
@@ -134,7 +134,7 @@ class TaskService {
     return updated;
   }
 
-  async deleteTask(taskId: number): Promise<void> {
+  async deleteTask(taskId: string): Promise<void> {
     const task = await taskRepository.findById(taskId);
 
     if (!task) {

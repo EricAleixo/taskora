@@ -1,1 +1,0 @@
-ALTER TYPE "status_task" ADD VALUE 'review';

@@ -2,7 +2,7 @@ import { Project } from "@/app/types/Project";
 import { projectRepository } from "../repository/project.repository";
 
 class ProjectService {
-  async getProjectById(projectId: number, userId: number): Promise<Project> {
+  async getProjectById(projectId: string, userId: string): Promise<Project> {
     const project = await projectRepository.findById(projectId);
 
     if (!project) {
@@ -16,12 +16,12 @@ class ProjectService {
     return project;
   }
 
-  async getUserProjects(userId: number): Promise<Project[]> {
+  async getUserProjects(userId: string): Promise<Project[]> {
     return projectRepository.findByUser(userId);
   }
 
   async createProject(
-    userId: number,
+    userId: string,
     data: {
       title: string;
       description?: string | null;
@@ -41,8 +41,8 @@ class ProjectService {
   }
 
   async updateProject(
-    projectId: number,
-    userId: number,
+    projectId: string,
+    userId: string,
     data: {
       title?: string;
       description?: string | null;
@@ -75,7 +75,7 @@ class ProjectService {
     return updated;
   }
 
-  async deleteProject(projectId: number, userId: number): Promise<void> {
+  async deleteProject(projectId: string, userId: string): Promise<void> {
     const project = await projectRepository.findById(projectId);
 
     if (!project) {

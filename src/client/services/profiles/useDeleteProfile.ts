@@ -9,7 +9,7 @@ export function useDeleteProfile() {
 
     onSuccess: (_, id) => {
       queryClient.removeQueries({
-        queryKey: ["profile", Number(id)],
+        queryKey: ["profile", id],
       });
     },
   });

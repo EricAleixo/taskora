@@ -3,7 +3,7 @@ import { db } from "..";
 import { profileTable, userTable } from "../schemas";
 
 export const profileRepository = {
-  async findByUserId(userId: number) {
+  async findByUserId(userId: string) {
     const result = await db
       .select({
         profile: profileTable,
@@ -18,7 +18,7 @@ export const profileRepository = {
     return result[0];
   },
 
-  async findById(id: number) {
+  async findById(id: string) {
     const [profile] = await db
       .select()
       .from(profileTable)
@@ -38,7 +38,7 @@ export const profileRepository = {
     return profile;
   },
 
-  async update(id: number, data: Partial<typeof profileTable.$inferInsert>) {
+  async update(id: string, data: Partial<typeof profileTable.$inferInsert>) {
     const [profile] = await db
       .update(profileTable)
       .set(data)
@@ -48,7 +48,7 @@ export const profileRepository = {
     return profile ?? null;
   },
 
-  async delete(id: number) {
+  async delete(id: string) {
     const [profile] = await db
       .delete(profileTable)
       .where(eq(profileTable.id, id))

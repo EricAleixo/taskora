@@ -22,7 +22,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect } from "react";
 
 type Task = {
-  id: number;
+  id: string;
   title: string;
   description?: string | null;
   startTime?: string | null;
@@ -31,7 +31,7 @@ type Task = {
   duration?: number | null;
   status: "pending" | "in_progress" | "completed";
   project?: string | null;
-  projectId?: number | null;
+  projectId?: string | null;
 };
 
 type FormValues = {
@@ -46,7 +46,7 @@ type FormValues = {
 
 type Props = {
   task: Task;
-  projectId: number;
+  projectId: string | undefined;
   open: boolean;
   onClose: () => void;
 };

@@ -1,16 +1,17 @@
+import { Params } from "@/app/types/App";
 import { taskService } from "@/src/server/db/services/task.service";
 import { NextResponse } from "next/server";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: Params 
 ) {
   try {
     const body = await req.json();
     const { id } = await params;
 
     const updated = await taskService.updateTaskStatus(
-      Number(id),
+      id,
       body.status
     );
 

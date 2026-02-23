@@ -239,7 +239,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
               </div>
 
               {/* Results */}
-              <div className="max-h-[380px] overflow-y-auto p-2">
+              <div className="max-h-95 overflow-y-auto p-2">
                 {/* Estado vazio — query curta */}
                 {query.length < 2 && (
                   <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground/40">

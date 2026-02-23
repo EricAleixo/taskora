@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeleteProject } from "@/src/client/services/project/useDeleteProject";
 import { useState, useRef, useEffect } from "react";
-import { CheckSquare, Pencil, Trash2, ListTodo } from "lucide-react";
+import { CheckSquare, Pencil, Trash2, ListTodo, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   LuFolderOpen,
@@ -92,51 +92,60 @@ const ProjectActionBar = ({
 }: {
   project: Project;
   onDelete: () => void;
-}) => (
-  <div className="flex items-center gap-2 px-5 py-3 bg-muted/50 border-t border-border rounded-b-xl animate-in fade-in slide-in-from-top-1 duration-150">
-    <Link
-      href={`/projects/${project.id}`}
-      onClick={(e) => e.stopPropagation()}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-    >
-      <ListTodo className="h-3.5 w-3.5" />
-      Tarefas
-    </Link>
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
 
-    {/* Edit — usa o trigger customizado para manter o estilo do action bar */}
-    <ProjectModal
-      mode="edit"
-      initialData={{
-        id: String(project.id),
-        title: project.title,
-        description: project.description ?? undefined,
-      }}
-      trigger={(open) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            open();
-          }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card border border-border text-foreground hover:bg-muted transition-colors"
-        >
-          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-          Editar
-        </button>
-      )}
-    />
-
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onDelete();
-      }}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card border border-border text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-    >
-      <Trash2 className="h-3.5 w-3.5" />
-      Excluir
-    </button>
-  </div>
-);
+  return (
+    <div className="flex items-center gap-2 px-5 py-3 bg-muted/50 border-t border-border rounded-b-xl animate-in fade-in slide-in-from-top-1 duration-150">
+      <Link
+        href={`/projects/${project.id}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsLoading(true);
+        }}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        {isLoading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <ListTodo className="h-3.5 w-3.5" />
+        )}
+        Tarefas
+      </Link>
+      {/* Edit — usa o trigger customizado para manter o estilo do action bar */}
+      <ProjectModal
+        mode="edit"
+        initialData={{
+          id: String(project.id),
+          title: project.title,
+          description: project.description ?? undefined,
+        }}
+        trigger={(open) => (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              open();
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card border border-border text-foreground hover:bg-muted transition-colors"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            Editar
+          </button>
+        )}
+      />
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card border border-border text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+        Excluir
+      </button>
+    </div>
+  );
+};
 
 // ─── Project Card ─────────────────────────────────────────────────────────────
 
@@ -358,7 +367,7 @@ export const ProjectsListPage = ({
   const [view, setView] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -434,7 +443,7 @@ export const ProjectsListPage = ({
     );
   };
 
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 

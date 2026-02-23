@@ -1,11 +1,11 @@
 import { Task } from "./Task";
 
 export type Project = {
-  id: number;
+  id: string;
   title: string;
   description: string | null;
   createdAt: Date;
-  userId: number;
+  userId: string;
   tasks?: Task[];
   isOptimistic?: boolean; // flag interna para optimistic update
 };

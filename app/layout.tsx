@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { QueryProvider } from "@/src/client/Providers/QueryProvider";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "next-themes";
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { Providers } from "@/src/client/Providers/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -26,19 +25,45 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const theme = cookieStore.get("theme")?.value ?? "system";
+  const session = await getServerSession(authOptions);
+  console.log(session)
+  const theme = (session?.user as any)?.theme ?? "system";
+
+  console.log("Server: ", theme)
+
   return (
     <html lang="pt-br" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider attribute={"class"} defaultTheme={theme} enableSystem>
-          <QueryProvider>
-            {children}
-            <Toaster richColors position="top-center" />
-          </QueryProvider>
-        </ThemeProvider>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = "${theme}";
+                  var root = document.documentElement;
+                  root.classList.remove('light', 'dark');
+                  if (theme === 'dark') {
+                    root.classList.add('dark');
+                  } else if (theme === 'light') {
+                    root.classList.add('light');
+                  } else {
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                      root.classList.add('dark');
+                    } else {
+                      root.classList.add('light');
+                    }
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>
+          {children}
+          <Toaster richColors position="top-center" />
+        </Providers>
       </body>
     </html>
   );

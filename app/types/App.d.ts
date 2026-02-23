@@ -9,3 +9,9 @@ export type AppSideBarI = {
   profile: Pick<Profile, "name" | "avatarUrl">;
   user: Pick<User, "id" | "email" | "role">;
 };
+
+export interface Params {
+  params: Promise<{
+    id: string;
+  }>;
+}

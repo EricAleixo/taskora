@@ -29,106 +29,51 @@ const SvgIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-// ─── Shared wave orchestrator ─────────────────────────────────────────────────
-// Each WaveLetter registers itself; a single setInterval fires them all
-// together so they never drift apart.
-
-type WaveCallback = () => void;
-
-class WaveOrchestrator {
-  private callbacks: Map<number, WaveCallback> = new Map();
-  private interval: ReturnType<typeof setInterval> | null = null;
-  private idCounter = 0;
-  private period: number;
-
-  constructor(period = 1800) {
-    this.period = period;
-  }
-
-  register(cb: WaveCallback): number {
-    const id = this.idCounter++;
-    this.callbacks.set(id, cb);
-    if (this.callbacks.size === 1) this.start();
-    return id;
-  }
-
-  unregister(id: number) {
-    this.callbacks.delete(id);
-    if (this.callbacks.size === 0) this.stop();
-  }
-
-  private start() {
-    this.interval = setInterval(() => {
-      this.callbacks.forEach((cb) => cb());
-    }, this.period);
-  }
-
-  private stop() {
-    if (this.interval !== null) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
-}
-
-// One orchestrator instance shared across all WaveLetters in the tree
-const globalOrchestrator = new WaveOrchestrator(1800);
-
-// ─── Wave letter ──────────────────────────────────────────────────────────────
+// ─── Wave letter — safe loop with cancelled ref ───────────────────────────────
 
 const WaveLetter: React.FC<{
   char: string;
   color: string;
-  /** stagger offset in ms */
-  delayMs: number;
+  delay: number;
   infinite: boolean;
-  /** called once after the entrance bounce finishes */
-  onEntranceDone?: () => void;
-}> = ({ char, color, delayMs, infinite, onEntranceDone }) => {
+}> = ({ char, color, delay, infinite }) => {
   const controls = useAnimationControls();
-  const mounted = useRef(false);
-
-  // Helper: bounce up then back, honouring mount state
-  const bounce = async (initialDelayMs = 0) => {
-    if (!mounted.current) return;
-    if (initialDelayMs > 0)
-      await new Promise((r) => setTimeout(r, initialDelayMs));
-    if (!mounted.current) return;
-    try {
-      await controls.start({
-        y: -6,
-        transition: { duration: 0.22, ease: "easeOut" },
-      });
-      if (!mounted.current) return;
-      await controls.start({
-        y: 0,
-        transition: { duration: 0.28, ease: "easeIn" },
-      });
-    } catch {
-      // unmounted mid-animation
-    }
-  };
+  const cancelled = useRef(false);
 
   useEffect(() => {
-    mounted.current = true;
+    cancelled.current = false;
 
-    // Entrance bounce
-    bounce(delayMs).then(() => onEntranceDone?.());
-
-    // Register with the global orchestrator for the looping wave
-    let regId: number | null = null;
-    if (infinite) {
-      regId = globalOrchestrator.register(() => {
-        bounce(delayMs);
+    const wave = async () => {
+      await controls.start({
+        y: -6,
+        transition: { duration: 0.25, ease: "easeOut", delay },
       });
-    }
+      if (cancelled.current) return;
+      await controls.start({
+        y: 0,
+        transition: { duration: 0.3, ease: "easeIn" },
+      });
+
+      while (infinite && !cancelled.current) {
+        await new Promise((r) => setTimeout(r, 1200 + delay * 300));
+        if (cancelled.current) break;
+        await controls.start({
+          y: -6,
+          transition: { duration: 0.25, ease: "easeOut" },
+        });
+        if (cancelled.current) break;
+        await controls.start({
+          y: 0,
+          transition: { duration: 0.3, ease: "easeIn" },
+        });
+      }
+    };
+
+    wave();
 
     return () => {
-      mounted.current = false;
-      controls.stop();
-      if (regId !== null) globalOrchestrator.unregister(regId);
+      cancelled.current = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -138,21 +83,19 @@ const WaveLetter: React.FC<{
   );
 };
 
-// ─── Wave text ────────────────────────────────────────────────────────────────
-
 const WaveText: React.FC<{
   text: string;
   color: string;
-  baseDelayMs: number;
+  baseDelay: number;
   infinite: boolean;
-}> = ({ text, color, baseDelayMs, infinite }) => (
+}> = ({ text, color, baseDelay, infinite }) => (
   <>
     {text.split("").map((char, i) => (
       <WaveLetter
         key={i}
         char={char}
         color={color}
-        delayMs={baseDelayMs + i * 70}
+        delay={baseDelay + i * 0.07}
         infinite={infinite}
       />
     ))}
@@ -179,12 +122,14 @@ export const Logo: React.FC<LogoProps> = ({
     if (!isAnimated) return;
 
     const run = async () => {
+      // 1. Icon fades + scales in from center
       await iconControls.start({
         opacity: 1,
         scale: 1,
         transition: { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] },
       });
 
+      // 2. Icon glides left + text reveals (overlapping)
       iconControls.start({
         x: slideX,
         transition: { duration: 0.55, ease: [0.65, 0, 0.35, 1] },
@@ -228,10 +173,6 @@ export const Logo: React.FC<LogoProps> = ({
   }
 
   // ── Animated ──────────────────────────────────────────────────────────────
-  // Loading: entrance wave starts quickly; loop wave fires every 1800 ms in sync
-  // Entrance: wave fires once with a larger initial delay (post-slide-in feel)
-  const baseDelayMs = isLoading ? 300 : 700;
-
   return (
     <div
       style={{ display: "flex", alignItems: "center", height: iconSize + 8 }}
@@ -261,14 +202,14 @@ export const Logo: React.FC<LogoProps> = ({
       >
         <WaveText
           text="Task"
-          color="currentColor"
-          baseDelayMs={baseDelayMs}
+          color="currentColor" // branco suave no dark
+          baseDelay={isLoading ? 0.3 : 0.7}
           infinite={isLoading}
         />
         <WaveText
           text="ora"
           color="#22c55e"
-          baseDelayMs={baseDelayMs + 4 * 70}
+          baseDelay={isLoading ? 0.3 + 4 * 0.07 : 0.7 + 4 * 0.07}
           infinite={isLoading}
         />
       </motion.h2>

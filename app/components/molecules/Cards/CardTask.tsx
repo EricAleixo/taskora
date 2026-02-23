@@ -18,7 +18,7 @@ import { TaskForm } from "../../organisms/Modal/TaskForm";
 import { useDeleteTask } from "@/src/client/services/tasks/useDeleteTask";
 
 type Task = {
-  id: number;
+  id: string;
   title: string;
   description?: string | null;
   startTime?: string | null;
@@ -27,7 +27,7 @@ type Task = {
   duration?: number | null;
   status: "pending" | "in_progress" | "completed" | "review";
   createdAt: Date;
-  projectId: number;
+  projectId: string;
 };
 
 const statusConfig = {

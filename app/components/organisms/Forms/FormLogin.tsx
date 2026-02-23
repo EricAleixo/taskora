@@ -131,7 +131,7 @@ export const FormLogin = () => {
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               className="w-full"
             >
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full dark:text-white">
                 Entrar
               </Button>
             </motion.div>

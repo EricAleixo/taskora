@@ -65,7 +65,7 @@ const ColumnHeader = ({
 }: {
   title: string;
   count: number;
-  projectId: number;
+  projectId: string;
   defaultStatus: TaskStatus;
   sort: SortOption;
   onSortChange: (sort: SortOption) => void;
@@ -146,7 +146,7 @@ const Column = ({
 }: {
   title: string;
   tasks: Task[];
-  projectId: number;
+  projectId: string;
   defaultStatus?: TaskStatus;
 }) => {
   const [sort, setSort] = useState<SortOption>("newest");
@@ -259,7 +259,7 @@ const MobileBoardScroll = ({
   projectId,
 }: {
   columnDefs: ColumnDef[];
-  projectId: number;
+  projectId: string;
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 type Task = {
-  id: number;
+  id: string;
   title: string;
   description?: string | null;
   startTime?: string | null;
@@ -28,7 +28,7 @@ type Task = {
   duration?: number | null;
   status: "pending" | "in_progress" | "completed";
   project?: { id: number; title: string; description?: string | null; [key: string]: any } | string | null;
-  projectId?: number | null;
+  projectId?: string | null;
   createdAt?: string | Date;
 };
 

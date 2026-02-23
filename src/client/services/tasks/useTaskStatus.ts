@@ -3,7 +3,7 @@ import { Task } from "@/app/types/Task";
 import { TaskClientService } from "./task.client.service";
 
 interface UpdateStatusVariables {
-  taskId: number;
+  taskId: string;
   status: Task["status"];
 }
 

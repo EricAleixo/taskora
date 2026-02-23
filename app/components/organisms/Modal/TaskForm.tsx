@@ -19,13 +19,13 @@ interface TaskFormValues {
   startTime: string | null;
   endTime: string | null;
   status: TaskStatus;
-  projectId: number;
+  projectId: string;
 }
 
 interface TaskFormProps {
-  projectId: number;
+  projectId: string;
   mode?: "create" | "update";
-  taskId?: number;
+  taskId?: string;
   initialValues?: Partial<Omit<TaskFormValues, "projectId">>;
   open?: boolean;
   onClose?: () => void;

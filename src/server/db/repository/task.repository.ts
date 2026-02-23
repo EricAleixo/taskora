@@ -4,7 +4,7 @@ import { db } from "..";
 import { projectTable, taskTable } from "../schemas";
 
 class TaskRepository {
-  async findById(id: number): Promise<Task | null> {
+  async findById(id: string): Promise<Task | null> {
     const task = await db.query.taskTable.findFirst({
       where: eq(taskTable.id, id),
       with: {
@@ -28,7 +28,7 @@ class TaskRepository {
     };
   }
 
-  async findByUser(userId: number): Promise<Task[]> {
+  async findByUser(userId: string): Promise<Task[]> {
     const result = await db
       .select()
       .from(taskTable)
@@ -49,7 +49,7 @@ class TaskRepository {
     }));
   }
 
-  async findByProject(projectId: number): Promise<Task[]> {
+  async findByProject(projectId: string): Promise<Task[]> {
     const tasks = await db.query.taskTable.findMany({
       where: eq(taskTable.projectId, projectId),
     });
@@ -75,7 +75,7 @@ class TaskRepository {
     endTime?: string | null;
     duration?: number | null;
     status?: Task["status"];
-    projectId?: number | null;
+    projectId?: string | null;
   }): Promise<Task> {
     const [task] = await db
       .insert(taskTable)
@@ -98,7 +98,7 @@ class TaskRepository {
     };
   }
 
-  async updateStatus(id: number, status: Task["status"]): Promise<Task | null> {
+  async updateStatus(id: string, status: Task["status"]): Promise<Task | null> {
     const [updated] = await db
       .update(taskTable)
       .set({ status })
@@ -120,7 +120,7 @@ class TaskRepository {
     };
   }
 
-  async update(id: number, data: Partial<Task>): Promise<Task | null> {
+  async update(id: string, data: Partial<Task>): Promise<Task | null> {
     const updated = await db
       .update(taskTable)
       .set(data)
@@ -130,7 +130,7 @@ class TaskRepository {
     return updated[0] ?? null;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await db.delete(taskTable).where(eq(taskTable.id, id));
   }
 }

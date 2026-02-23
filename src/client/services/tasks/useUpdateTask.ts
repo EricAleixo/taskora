@@ -2,10 +2,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TaskClientService, UpdateTaskDTO } from "./task.client.service";
 
-export const useUpdateTask = (projectId?: number) => {
+export const useUpdateTask = (projectId?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateTaskDTO }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTaskDTO }) =>
       TaskClientService.update(id, payload),
     onMutate: async ({ id, payload }) => {
       // Cancela e atualiza otimisticamente a query de tasks global

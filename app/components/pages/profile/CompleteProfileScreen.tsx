@@ -5,8 +5,10 @@ import { useCreateProfile } from "@/src/client/services/profiles/useCreateProfil
 import { CreateProfileDTO } from "@/src/client/services/profiles/profile.client.service";
 import { useUploadAvatar } from "@/src/client/services/profiles/useUploadAvatar";
 import { AvatarCropModal } from "@/components/ui/AvatarCropModal";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { animateThemeChange } from "@/lib/themeTransition";
+import { useSession } from "next-auth/react";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,10 +25,30 @@ import { Logo } from "../../atoms/Logo";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type Theme = "light" | "dark" | "system";
+
 interface User {
   name?: string | null;
   image?: string | null;
   email?: string | null;
+}
+
+// ─── Theme helpers (sem next-themes) ─────────────────────────────────────────
+
+/**
+ * Aplica o tema diretamente na classe do <html>.
+ * NÃO persiste nada — só visual (preview).
+ */
+function applyThemeClass(theme: Theme) {
+  const root = document.documentElement;
+  root.classList.remove("light", "dark");
+
+  if (theme === "system") {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.classList.add(prefersDark ? "dark" : "light");
+  } else {
+    root.classList.add(theme);
+  }
 }
 
 // ─── Step Icons ───────────────────────────────────────────────────────────────
@@ -59,6 +81,28 @@ const StepIcons: Record<number, React.ReactNode> = {
   ),
 };
 
+// ─── Theme Icons ──────────────────────────────────────────────────────────────
+
+const ThemeLightIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+  </svg>
+);
+
+const ThemeDarkIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+);
+
+const ThemeSystemIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M8 21h8M12 17v4" />
+  </svg>
+);
+
 const CheckIcon = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 8l3.5 3.5L13 4" />
@@ -70,6 +114,27 @@ const STEPS = [
   { id: 2, label: "Foto", sublabel: "Avatar público" },
   { id: 3, label: "Preferências", sublabel: "Tema e região" },
   { id: 4, label: "Notificações", sublabel: "Como te avisar" },
+];
+
+const THEME_OPTIONS: { value: Theme; label: string; Icon: React.FC; previewClass: string }[] = [
+  {
+    value: "light",
+    label: "Claro",
+    Icon: ThemeLightIcon,
+    previewClass: "bg-white border border-zinc-200",
+  },
+  {
+    value: "dark",
+    label: "Escuro",
+    Icon: ThemeDarkIcon,
+    previewClass: "bg-zinc-900",
+  },
+  {
+    value: "system",
+    label: "Sistema",
+    Icon: ThemeSystemIcon,
+    previewClass: "bg-linear-to-br from-white to-zinc-900",
+  },
 ];
 
 // ─── Timeline ─────────────────────────────────────────────────────────────────
@@ -150,17 +215,11 @@ function TimelineSteps({ current }: { current: number }) {
 }
 
 // ─── Photo Step ───────────────────────────────────────────────────────────────
-// Se o user já tem foto do OAuth → mostra preview + botão para trocar via crop
-// Se não tem → abre o AvatarCropModal direto ao clicar
 
 interface PhotoStepProps {
-  /** URL original do OAuth (Google/Apple) — pode ser null se o user não tem */
   oauthImageUrl?: string | null;
-  /** Preview local após crop (object URL do Blob) ou URL do OAuth enquanto não cropou */
   previewUrl?: string | null;
-  /** Chamado quando o usuário seleciona + cropa uma nova foto */
   onCropBlob: (blob: Blob) => void;
-  /** Informa ao step pai que o user quer usar a foto do OAuth sem crop */
   onKeepOauth: () => void;
 }
 
@@ -172,7 +231,6 @@ function PhotoStep({ oauthImageUrl, previewUrl, onCropBlob, onKeepOauth }: Photo
 
   return (
     <div className="flex flex-col items-center gap-6 py-4">
-      {/* Preview circle */}
       <motion.div
         className={cn(
           "relative group flex flex-col items-center justify-center cursor-pointer",
@@ -219,7 +277,6 @@ function PhotoStep({ oauthImageUrl, previewUrl, onCropBlob, onKeepOauth }: Photo
         )}
       </motion.div>
 
-      {/* Legenda contextual */}
       <div className="flex flex-col items-center gap-2">
         {hasOauth && !hasCropped && (
           <motion.p
@@ -255,7 +312,6 @@ function PhotoStep({ oauthImageUrl, previewUrl, onCropBlob, onKeepOauth }: Photo
         )}
       </div>
 
-      {/* AvatarCropModal */}
       <AvatarCropModal
         open={cropOpen}
         onClose={() => setCropOpen(false)}
@@ -295,7 +351,6 @@ function NotifCard({ id, title, desc, defaultChecked = false, onChange }: {
           : "bg-card border-border/60 hover:border-primary/20 hover:bg-primary/3",
       )}
     >
-      {/* Checkbox nativo estilizado — sem Radix, sem conflito com AnimatePresence */}
       <div
         className={cn(
           "mt-0.5 h-4 w-4 shrink-0 rounded-sm border-2 flex items-center justify-center transition-colors duration-150",
@@ -323,6 +378,7 @@ function NotifCard({ id, title, desc, defaultChecked = false, onChange }: {
     </div>
   );
 }
+
 // ─── Slide variants ───────────────────────────────────────────────────────────
 
 const slide = {
@@ -334,20 +390,22 @@ const slide = {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
-  const { mutate: createProfile, isPending: isSaving } = useCreateProfile();
+  const { mutateAsync: createProfile, isPending: isSaving } = useCreateProfile();
   const { mutateAsync: uploadAvatar } = useUploadAvatar();
+
+  // useSession para atualizar o JWT com o novo tema sem precisar de logout
+  const { update: updateSession } = useSession();
 
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
 
-  /**
-   * croppedBlob   → o usuário cropou uma foto (arquivo local)
-   * avatarPreview → URL de preview no browser (object URL do blob ou URL do OAuth)
-   * useOauth      → true = ao salvar, vai baixar a foto do OAuth via servidor
-   */
   const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.image ?? null);
   const [useOauth, setUseOauth] = useState<boolean>(Boolean(user?.image));
+
+  // ── Ref para guardar o tema original (para reverter ao desmontar sem salvar) ──
+  const originalThemeRef = useRef<Theme>("system");
+  const hasInitializedTheme = useRef(false);
 
   const {
     register,
@@ -366,13 +424,38 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
   });
 
   const watchedName = watch("name");
+  const watchedTheme = (watch("theme") ?? "system") as Theme;
+  const watchedTimezone = watch("timezone");
+
+  // ── Captura o tema original do <html> ao montar, e reverte ao desmontar ──────
+  // Espelha exatamente a lógica do ProfilePage: o originalTheme é o que estava
+  // no token/cookie antes do usuário abrir esta tela. Ao fechar sem salvar,
+  // volta para esse valor.
+  useEffect(() => {
+    if (hasInitializedTheme.current) return;
+    hasInitializedTheme.current = true;
+
+    // Lê o tema que já está aplicado no <html> (vindo do script do layout/token)
+    const root = document.documentElement;
+    const current: Theme = root.classList.contains("dark")
+      ? "dark"
+      : root.classList.contains("light")
+        ? "light"
+        : "system";
+
+    originalThemeRef.current = current;
+
+    return () => {
+      // Saiu sem salvar → reverte para o tema que estava antes de entrar
+      applyThemeClass(originalThemeRef.current);
+    };
+  }, []);
 
   // ── Handlers do PhotoStep ──────────────────────────────────────────────────
 
   const handleCropBlob = (blob: Blob) => {
     setCroppedBlob(blob);
     setUseOauth(false);
-    // Gera preview local imediato — sem esperar upload
     const localUrl = URL.createObjectURL(blob);
     setAvatarPreview(localUrl);
   };
@@ -381,6 +464,15 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
     setCroppedBlob(null);
     setUseOauth(true);
     setAvatarPreview(user?.image ?? null);
+  };
+
+  // ── Preview visual do tema (igual ao ProfilePage) ─────────────────────────
+  // Não persiste nada no token — só muda a classe do <html> para preview imediato.
+  const handleThemeChange = (t: Theme) => {
+    animateThemeChange(() => {
+      applyThemeClass(t);    // só muda a classe do <html>
+      setValue("theme", t);  // atualiza o form
+    });
   };
 
   // ── Navegação ──────────────────────────────────────────────────────────────
@@ -401,16 +493,16 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
   };
 
   // ── Submit ─────────────────────────────────────────────────────────────────
+  // Só aqui o tema é persistido (salvo no backend).
+  // Após salvar, applyThemeClass confirma o tema visualmente (já estava em preview).
 
   const onSubmit = async (data: CreateProfileDTO) => {
     let finalAvatarUrl: string | undefined = undefined;
 
     try {
       if (croppedBlob) {
-        // Caso 1: usuário cropou uma foto local → faz upload do blob
         finalAvatarUrl = await uploadAvatar({ blob: croppedBlob });
       } else if (useOauth && user?.image) {
-        // Caso 2: usuário quer manter/usar a foto do OAuth → servidor baixa e re-hospeda no Cloudinary
         const res = await fetch("/api/upload/avatar-from-url/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -420,18 +512,23 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
           const json = await res.json();
           finalAvatarUrl = json.url;
         }
-        // Se falhar, segue sem foto (não bloqueia o cadastro)
       }
-      // Caso 3: nenhuma foto → finalAvatarUrl permanece undefined
     } catch (err) {
       console.error("[CompleteProfileScreen] Erro no upload de avatar:", err);
-      // Não bloqueia o cadastro
     }
 
-    createProfile(
-      { ...data, avatarUrl: finalAvatarUrl },
-      { onSuccess: () => window.location.reload() },
-    );
+    // Confirma o tema visualmente (já estava em preview, mas garante sync)
+    applyThemeClass(data.theme as Theme);
+
+    // ✅ Igual ao ProfilePage: await createProfile → await updateSession → reload
+    // Usar mutateAsync garante que updateSession só roda após o perfil estar salvo no banco
+    await createProfile({ ...data, avatarUrl: finalAvatarUrl });
+
+    // ✅ Só aqui atualiza o token JWT com o novo tema
+    // O callback jwt() no NextAuth intercepta trigger === "update" e grava token.theme
+    await updateSession({ theme: data.theme });
+
+    window.location.reload();
   };
 
   const isPending = isSaving;
@@ -595,30 +692,72 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
                           </Select>
                         </div>
 
+                        {/* ── Tema: replicado do ProfilePage com ícones SVG ── */}
                         <div className="flex flex-col gap-2">
-                          <Label className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Tema</Label>
+                          <Label className="text-xs font-bold tracking-widest uppercase text-muted-foreground">
+                            Tema
+                          </Label>
+
+                          {/* Badge de preview ativo (espelha o badge do ProfilePage) */}
+                          <AnimatePresence>
+                            {watchedTheme && (
+                              <motion.p
+                                key={watchedTheme}
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="text-[11px] text-primary/60 font-medium -mt-0.5 mb-1"
+                              >
+                                Prévia aplicada: {watchedTheme === "light" ? "Claro" : watchedTheme === "dark" ? "Escuro" : "Sistema"}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
+
                           <div className="grid grid-cols-3 gap-2.5">
-                            {[
-                              { v: "system", e: "💻", l: "Sistema" },
-                              { v: "light", e: "☀️", l: "Claro" },
-                              { v: "dark", e: "🌙", l: "Escuro" },
-                            ].map((t) => {
-                              const sel = watch("theme") === t.v || (!watch("theme") && t.v === "system");
+                            {THEME_OPTIONS.map((t) => {
+                              const isSelected = watchedTheme === t.value;
                               return (
                                 <motion.button
-                                  key={t.v}
+                                  key={t.value}
                                   type="button"
                                   whileTap={{ scale: 0.95 }}
-                                  onClick={() => setValue("theme", t.v)}
+                                  onClick={() => handleThemeChange(t.value)}
                                   className={cn(
-                                    "flex flex-col items-center gap-1.5 py-4 rounded-xl border-2 transition-all duration-200",
-                                    sel
-                                      ? "border-primary bg-primary/8 shadow-sm shadow-primary/15"
+                                    "relative flex flex-col items-center gap-2 py-3.5 px-2 rounded-xl border-2 transition-all duration-200",
+                                    isSelected
+                                      ? "border-primary bg-primary/5 shadow-sm shadow-primary/15"
                                       : "border-border/60 bg-muted/20 hover:bg-muted/50 hover:border-primary/30",
                                   )}
                                 >
-                                  <span className="text-xl">{t.e}</span>
-                                  <span className={cn("text-[11px] font-semibold", sel ? "text-primary" : "text-muted-foreground/60")}>{t.l}</span>
+                                  {/* Preview mini do tema (igual ao ProfilePage) */}
+                                  <div className={cn("h-7 w-full rounded-md", t.previewClass)} />
+
+                                  {/* Ícone SVG do tema */}
+                                  <span className={cn(
+                                    "transition-colors",
+                                    isSelected ? "text-primary" : "text-muted-foreground/50",
+                                  )}>
+                                    <t.Icon />
+                                  </span>
+
+                                  {/* Label */}
+                                  <span className={cn(
+                                    "text-[11px] font-semibold",
+                                    isSelected ? "text-primary" : "text-muted-foreground/60",
+                                  )}>
+                                    {t.label}
+                                  </span>
+
+                                  {/* Badge de seleção (igual ao ProfilePage) */}
+                                  {isSelected && (
+                                    <motion.span
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-primary text-primary-foreground"
+                                    >
+                                      <CheckIcon />
+                                    </motion.span>
+                                  )}
                                 </motion.button>
                               );
                             })}
@@ -684,8 +823,8 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
 
                           <div className="flex flex-col gap-2.5">
                             {[
-                              ["Fuso", watch("timezone") || "—"],
-                              ["Tema", watch("theme") || "sistema"],
+                              ["Fuso", watchedTimezone || "—"],
+                              ["Tema", watchedTheme === "light" ? "Claro" : watchedTheme === "dark" ? "Escuro" : "Sistema"],
                               [
                                 "Foto",
                                 croppedBlob

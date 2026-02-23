@@ -4,7 +4,7 @@ import { db } from "..";
 import { projectTable } from "../schemas";
 
 class ProjectRepository {
-  async findById(id: number): Promise<Project | null> {
+  async findById(id: string): Promise<Project | null> {
     const project = await db.query.projectTable.findFirst({
       where: eq(projectTable.id, id),
       with: {
@@ -34,7 +34,7 @@ class ProjectRepository {
     };
   }
 
-  async findByUser(userId: number): Promise<Project[]> {
+  async findByUser(userId: string): Promise<Project[]> {
     const projects = await db.query.projectTable.findMany({
       where: eq(projectTable.userId, userId),
       with: {
@@ -65,7 +65,7 @@ class ProjectRepository {
   async create(data: {
     title: string;
     description?: string | null;
-    userId: number;
+    userId: string;
   }): Promise<Project> {
     const [project] = await db.insert(projectTable).values(data).returning();
 
@@ -80,7 +80,7 @@ class ProjectRepository {
   }
 
   async update(
-    id: number,
+    id: string,
     data: {
       title?: string;
       description?: string | null;
@@ -104,7 +104,7 @@ class ProjectRepository {
     };
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const deleted = await db
       .delete(projectTable)
       .where(eq(projectTable.id, id))

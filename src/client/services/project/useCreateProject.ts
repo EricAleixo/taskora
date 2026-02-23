@@ -17,11 +17,11 @@ export const useCreateProject = () => {
       const previous = queryClient.getQueryData<Project[]>(["projects"]);
 
       const optimisticProject: Project = {
-        id: -Date.now(),
+        id: String(-Date.now()),
         title: newProject.title,
         description: newProject.description ?? null,
         createdAt: new Date(),
-        userId: 0, // preenchido pelo servidor
+        userId: "0", // preenchido pelo servidor
         tasks: [],
         isOptimistic: true,
       };

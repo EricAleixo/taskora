@@ -2,10 +2,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TaskClientService } from "./task.client.service";
 
-export const useDeleteTask = (projectId?: number) => {
+export const useDeleteTask = (projectId?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: number) => TaskClientService.delete(id),
+    mutationFn: async (id: string) => TaskClientService.delete(id),
     onMutate: async (id) => {
       // Cancela e atualiza otimisticamente a query de tasks global
       await queryClient.cancelQueries({ queryKey: ["tasks"] });

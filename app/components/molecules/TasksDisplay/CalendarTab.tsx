@@ -141,7 +141,7 @@ export const CalendarTab = ({ project }: CalendarTabProps) => {
 
   return (
     <div
-      className="rounded-xl min-h-[calc(100vh-300px)] p-[1px]"
+      className="rounded-xl min-h-[calc(100vh-300px)] p-px"
       style={{
         background:
           "linear-gradient(to right, transparent, rgb(36, 161, 54), transparent)",

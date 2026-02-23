@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TaskClientService } from "./task.client.service";
 
-export const useCreateTask = (projectId?: number) => {
+export const useCreateTask = (projectId?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: Parameters<typeof TaskClientService.create>[0]) =>

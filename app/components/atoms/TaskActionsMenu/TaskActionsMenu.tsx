@@ -14,7 +14,7 @@ import { EditTaskModal } from "../../organisms/Modal/EditTaskModal";
 import { ViewTaskModal } from "../../organisms/Modal/TaskModal";
 
 type Task = {
-  id: number;
+  id: string;
   title: string;
   description?: string | null;
   startTime?: string | null;
@@ -23,18 +23,18 @@ type Task = {
   duration?: number | null;
   status: "pending" | "in_progress" | "completed";
   project?: string | null;
-  projectId?: number | null;
+  projectId?: string | null;
   createdAt?: string | Date;
 };
 
 type Props = {
   task: Task;
-  projectId?: number;
+  projectId?: string;
 };
 
 type ModalType = "view" | "edit" | "delete" | null;
 
-export const TaskActionsMenu = ({ task, projectId = 0 }: Props) => {
+export const TaskActionsMenu = ({ task, projectId }: Props) => {
   const [modal, setModal] = useState<ModalType>(null);
 
   return (

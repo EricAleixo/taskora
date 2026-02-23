@@ -12,8 +12,8 @@ import { useDeleteTask } from "@/src/client/services/tasks/useDeleteTask";
 import { LuTriangleAlert } from "react-icons/lu";
 
 type Props = {
-  task: { id: number; title: string };
-  projectId: number;
+  task: { id: string; title: string };
+  projectId: string | undefined;
   open: boolean;
   onClose: () => void;
 };

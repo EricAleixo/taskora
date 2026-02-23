@@ -5,7 +5,7 @@ import { User } from "@/app/types/User";
 
 // user.repository.ts
 class UserRepository {
-  async findById(id: number): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     const user = await db.query.userTable.findFirst({
       where: eq(userTable.id, id),
     });

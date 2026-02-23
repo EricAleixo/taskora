@@ -8,7 +8,7 @@ export interface CreateTaskDTO {
   startTime?: string | null;
   endTime?: string | null;
   duration?: number | null;
-  projectId?: number;
+  projectId?: string;
   status: "pending" | "completed" | "in_progress" | "cancelled" | "review";
 }
 
@@ -19,7 +19,7 @@ export interface UpdateTaskDTO {
   startTime?: string | null;
   endTime?: string | null;
   duration?: number | null;
-  projectId?: number | null;
+  projectId?: string | null;
   status?: Task["status"];
 }
 
@@ -34,7 +34,7 @@ export const TaskClientService = {
     return data;
   },
 
-  async updateStatus(taskId: number, status: Task["status"]): Promise<Task> {
+  async updateStatus(taskId: string, status: Task["status"]): Promise<Task> {
     const { data } = await api.patch<Task>(`/tasks/${taskId}/status`, {
       status,
     });
@@ -42,13 +42,13 @@ export const TaskClientService = {
   },
 
   // ✅ UPDATE COMPLETO
-  async update(taskId: number, payload: UpdateTaskDTO): Promise<Task> {
+  async update(taskId: string, payload: UpdateTaskDTO): Promise<Task> {
     const { data } = await api.patch<Task>(`/tasks/${taskId}`, payload);
     return data;
   },
 
   // ✅ DELETE
-  async delete(taskId: number): Promise<void> {
+  async delete(taskId: string): Promise<void> {
     await api.delete(`/tasks/${taskId}`);
   },
 };

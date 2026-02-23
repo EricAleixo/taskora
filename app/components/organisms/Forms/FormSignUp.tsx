@@ -200,7 +200,7 @@ export const FormSignUp = () => {
         {step === "form" && (
           <CardFooter className="flex-col gap-2">
             <Item className="w-full">
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full dark:text-white" disabled={loading}>
                     {loading ? "Enviando código..." : "Criar conta"}
                   </Button>
                 </Item>

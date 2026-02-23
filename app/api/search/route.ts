@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   }
 
   const pattern = `%${q}%`;
-  const userId = Number(user.id);
+  const userId = user.id;
 
   const [projects, tasks] = await Promise.all([
     // Projetos do usuário logado que batem com a busca
