@@ -39,30 +39,46 @@ const WaveLetter: React.FC<{
 }> = ({ char, color, delay, infinite }) => {
   const controls = useAnimationControls();
   const cancelled = useRef(false);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     cancelled.current = false;
 
+    const safeStart = async (props: Parameters<typeof controls.start>[0]) => {
+      if (cancelled.current || !mounted.current) return;
+      try {
+        await controls.start(props);
+      } catch {
+        // component unmounted mid-animation
+      }
+    };
+
     const wave = async () => {
-      await controls.start({
+      if (!mounted.current) return;
+
+      await safeStart({
         y: -6,
         transition: { duration: 0.25, ease: "easeOut", delay },
       });
-      if (cancelled.current) return;
-      await controls.start({
+      await safeStart({
         y: 0,
         transition: { duration: 0.3, ease: "easeIn" },
       });
 
-      while (infinite && !cancelled.current) {
+      while (infinite && !cancelled.current && mounted.current) {
         await new Promise((r) => setTimeout(r, 1200 + delay * 300));
-        if (cancelled.current) break;
-        await controls.start({
+        await safeStart({
           y: -6,
           transition: { duration: 0.25, ease: "easeOut" },
         });
-        if (cancelled.current) break;
-        await controls.start({
+        await safeStart({
           y: 0,
           transition: { duration: 0.3, ease: "easeIn" },
         });
@@ -73,6 +89,7 @@ const WaveLetter: React.FC<{
 
     return () => {
       cancelled.current = true;
+      controls.stop(); // para qualquer animação em andamento
     };
   }, []);
 
