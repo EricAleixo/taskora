@@ -763,20 +763,6 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
                             })}
                           </div>
                         </div>
-
-                        <div className="md:col-span-2 flex flex-col gap-2">
-                          <Label className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Idioma</Label>
-                          <Select defaultValue="pt-BR">
-                            <SelectTrigger className="h-12 border-2 bg-muted/30 focus:ring-0 focus:border-primary transition-all duration-200">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pt-BR">🇧🇷 Português (Brasil)</SelectItem>
-                              <SelectItem value="en-US">🇺🇸 English (US)</SelectItem>
-                              <SelectItem value="es">🇪🇸 Español</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
                       </div>
                     )}
 

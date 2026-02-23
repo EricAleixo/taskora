@@ -21,15 +21,14 @@ class TaskService {
     return taskRepository.findByUser(userId);
   }
 
-  async getTasksByProject(projectId: string, userId: string): Promise<Task[]> {
+  async getTasksByProject(
+    projectId: string,
+    userId: string,
+  ): Promise<Task[] | null> {
     const project = await projectRepository.findById(projectId);
 
-    if (!project) {
-      throw new Error("Projeto não encontrado");
-    }
-
-    if (project.userId !== userId) {
-      throw new Error("Sem permissão para acessar as tarefas");
+    if (!project || project.userId !== userId) {
+      return null;
     }
 
     return taskRepository.findByProject(projectId);
@@ -60,12 +59,8 @@ class TaskService {
     if (data.projectId) {
       const project = await projectRepository.findById(data.projectId);
 
-      if (!project) {
-        throw new Error("Projeto não encontrado");
-      }
-
-      if (project.userId !== userId) {
-        throw new Error("Você não pode adicionar tarefas nesse projeto");
+      if (!project || project.userId !== userId) {
+        return null;
       }
     }
 

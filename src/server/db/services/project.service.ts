@@ -2,15 +2,11 @@ import { Project } from "@/app/types/Project";
 import { projectRepository } from "../repository/project.repository";
 
 class ProjectService {
-  async getProjectById(projectId: string, userId: string): Promise<Project> {
+  async getProjectById(projectId: string, userId: string): Promise<Project | null> {
     const project = await projectRepository.findById(projectId);
 
-    if (!project) {
-      throw new Error("Projeto não encontrado");
-    }
-
-    if (project.userId !== userId) {
-      throw new Error("Você não tem permissão para acessar esse projeto");
+    if (!project || project.userId !== userId) {
+      return null;
     }
 
     return project;
@@ -47,15 +43,11 @@ class ProjectService {
       title?: string;
       description?: string | null;
     },
-  ): Promise<Project> {
+  ): Promise<Project | null> {
     const project = await projectRepository.findById(projectId);
 
-    if (!project) {
-      throw new Error("Projeto não encontrado");
-    }
-
-    if (project.userId !== userId) {
-      throw new Error("Você não tem permissão para editar esse projeto");
+    if (!project || project.userId !== userId) {
+      return null;
     }
 
     if (data.title !== undefined) {
