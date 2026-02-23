@@ -618,7 +618,7 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
                             Nome completo <span className="text-primary">*</span>
                           </Label>
                           <Input
-                            placeholder="ex: Maria Silva"
+                            placeholder="ex: Maria Júlia"
                             className={cn(
                               "h-12 border-2 bg-muted/30 transition-all duration-200 text-sm",
                               "focus-visible:ring-0 focus-visible:border-primary focus-visible:bg-background",
