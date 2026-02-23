@@ -64,7 +64,9 @@ function applyThemeClass(theme: Theme) {
   root.classList.remove("light", "dark");
 
   if (theme === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     root.classList.add(prefersDark ? "dark" : "light");
   } else {
     root.classList.add(theme);
@@ -113,7 +115,8 @@ const Section = ({
 export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
   const { data, isPending } = useCurrentProfile();
   const { mutateAsync: updateProfile } = useUpdateProfile();
-  const { mutateAsync: uploadAvatar, isPending: isUploading } = useUploadAvatar();
+  const { mutateAsync: uploadAvatar, isPending: isUploading } =
+    useUploadAvatar();
 
   // useSession para poder chamar update() e atualizar o JWT sem logout
   const { update: updateSession } = useSession();
@@ -193,7 +196,7 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
   // Preview visual apenas — NÃO persiste nada no token nem em cookie
   const handleThemeChange = (t: Theme) => {
     animateThemeChange(() => {
-      applyThemeClass(t);   // só muda a classe do <html>
+      applyThemeClass(t); // só muda a classe do <html>
       setValue("theme", t); // atualiza o form
     });
   };
@@ -233,41 +236,41 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
     <div className="min-h-screen bg-background">
       {/* ── Top bar ── */}
       <motion.div
-  initial={{ opacity: 0, y: -8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.35 }}
-  className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-8 py-4 flex items-center justify-between"
->
-  <div className="flex items-center gap-3">
-    <SidebarTrigger className="sm:hidden" />
-    <div>
-      <h1 className="text-lg font-semibold">Meu Perfil</h1>
-      {userEmail && (
-        <p className="text-xs text-muted-foreground">{userEmail}</p>
-      )}
-    </div>
-  </div>
-  <Button
-    type="submit"
-    form="profile-form"
-    disabled={isSubmitting || isUploading}
-    className="gap-2 min-w-27.5"
-  >
-    {saved ? (
-      <>
-        <LuCheck className="h-4 w-4" />
-        Salvo!
-      </>
-    ) : isSubmitting ? (
-      "Salvando…"
-    ) : (
-      <>
-        <LuSave className="h-4 w-4" />
-        Salvar
-      </>
-    )}
-  </Button>
-</motion.div>
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-8 py-4 flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="sm:hidden" />
+          <div>
+            <h1 className="text-lg font-semibold">Meu Perfil</h1>
+            {userEmail && (
+              <p className="text-xs text-muted-foreground">{userEmail}</p>
+            )}
+          </div>
+        </div>
+        <Button
+          type="submit"
+          form="profile-form"
+          disabled={isSubmitting || isUploading}
+          className="gap-2 min-w-27.5"
+        >
+          {saved ? (
+            <>
+              <LuCheck className="h-4 w-4" />
+              Salvo!
+            </>
+          ) : isSubmitting ? (
+            "Salvando…"
+          ) : (
+            <>
+              <LuSave className="h-4 w-4" />
+              Salvar
+            </>
+          )}
+        </Button>
+      </motion.div>
 
       {/* ── Form ── */}
       <form

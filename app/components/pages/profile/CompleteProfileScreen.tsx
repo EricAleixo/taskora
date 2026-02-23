@@ -645,10 +645,11 @@ export const CompleteProfileScreen = ({ user }: { user?: User | null }) => {
                             <span className="text-[11px] text-muted-foreground/40">opcional</span>
                           </div>
                           <Textarea
+                            maxLength={700}
                             placeholder="Sua área de atuação, o que te move, um hobby…"
                             rows={4}
                             className="resize-none border-2 bg-muted/30 transition-all duration-200 text-sm leading-relaxed focus-visible:ring-0 focus-visible:border-primary focus-visible:bg-background focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)]"
-                            {...register("bio", { maxLength: { value: 200, message: "Máximo 200 caracteres" } })}
+                            {...register("bio", { maxLength: { value: 700, message: "Máximo 700 caracteres" } })}
                           />
                         </div>
                       </div>

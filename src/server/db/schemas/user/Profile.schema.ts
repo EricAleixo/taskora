@@ -16,7 +16,7 @@ export const profileTable = pgTable("profile", {
     .unique(),
   name: varchar("name", { length: 100 }).notNull(),
   avatarUrl: varchar("avatar_url", { length: 255 }),
-  bio: varchar("bio", { length: 255 }),
+  bio: varchar("bio", { length: 700 }),
   timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo").notNull(),
   theme: varchar("theme", { length: 20 }).default("system").notNull(),
   receiveEmailNotifications: boolean("receive_email_notifications").default(true).notNull(),
