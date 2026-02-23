@@ -57,14 +57,16 @@ export const FormLogin = () => {
       <Card className="w-full">
         {/* Header */}
         <CardHeader>
-          <Item>
-            <CardTitle>Entrar na conta</CardTitle>
-          </Item>
-          <Item>
-            <CardDescription>
-              Entre na sua conta colocando seu email e senha.
-            </CardDescription>
-          </Item>
+          <div className="grid grid-cols-1 gap-2">
+            <Item>
+              <CardTitle>Entrar na conta</CardTitle>
+            </Item>
+            <Item>
+              <CardDescription>
+                Entre na sua conta colocando seu email e senha.
+              </CardDescription>
+            </Item>
+          </div>
           <Item>
             <CardAction>
               <Link href="/register">
@@ -143,20 +145,6 @@ export const FormLogin = () => {
               className="w-full"
             >
               <LoginBtn />
-            </motion.div>
-          </Item>
-
-          <Item className="w-full">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              className="w-full"
-            >
-              <Button variant="outline" className="w-full">
-                <FaApple className="size-6" />
-                Login com a Apple
-              </Button>
             </motion.div>
           </Item>
         </CardFooter>

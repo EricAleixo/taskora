@@ -52,8 +52,8 @@ export const profileDropdown = (props: AppSideBarI) => {
         <DropdownMenuItem>
           <LogOutBtn />
         </DropdownMenuItem>
-        <Link href="/profile">
-          <DropdownMenuItem><User></User>Profile</DropdownMenuItem>
+        <Link className="cursor-pointer" href="/profile">
+          <DropdownMenuItem className="cursor-pointer"><User></User>Profile</DropdownMenuItem>
         </Link>
       </DropdownMenuContent>
     </DropdownMenu>
