@@ -36,6 +36,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AppSideBarI } from "@/app/types/App";
 import Logo from "../../atoms/Logo";
 import { SearchModal } from "../Modal/SearchModal";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const AppSidebar = (props: AppSideBarI) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
@@ -158,24 +159,42 @@ export const AppSidebar = (props: AppSideBarI) => {
                   </SidebarMenuItem>
 
                   {/* Lista de Projetos */}
-                  {isProjectsOpen && (
-                    <div className="ml-4 mt-1 mb-2 relative">
-                      <div className="absolute left-2 top-0 bottom-0 w-px bg-border" />
-                      <div className="space-y-0.5">
-                        {data.map((project) => (
-                          <Link key={project.id} href={`/projects/${project.id}`}>
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start gap-2 h-8 px-2 text-sm font-normal relative pl-6 group"
+                  <AnimatePresence>
+                    {isProjectsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="ml-4 mt-1 mb-2 relative overflow-hidden"
+                      >
+                        <div className="absolute left-2 top-0 bottom-0 w-px bg-border" />
+                        <div className="space-y-0.5">
+                          {data.map((project, index) => (
+                            <motion.div
+                              key={project.id}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{
+                                delay: index * 0.04,
+                                duration: 0.2,
+                              }}
                             >
-                              <span className="absolute left-2 top-1/2 w-3 h-px bg-border group-hover:bg-primary/50 transition-colors" />
-                              <span>{project.title}</span>
-                            </Button>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                              <Link href={`/projects/${project.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start gap-2 h-8 px-2 text-sm font-normal relative pl-6 group"
+                                >
+                                  <span className="absolute left-2 top-1/2 w-3 h-px bg-border group-hover:bg-primary/50 transition-colors" />
+                                  <span>{project.title}</span>
+                                </Button>
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Tarefas */}
                   <SidebarMenuItem>

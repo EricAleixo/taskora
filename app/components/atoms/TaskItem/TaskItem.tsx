@@ -20,14 +20,18 @@ import { toast } from "sonner";
 import { Task } from "@/app/types/Task";
 import { useTaskStatus } from "@/src/client/services/tasks/useTaskStatus";
 
-const HINT_KEY = "task-hint-shown";
-const showHintOnce = () => {
-  if (sessionStorage.getItem(HINT_KEY)) return;
-  sessionStorage.setItem(HINT_KEY, "1");
-  toast("Dica rápida", {
-    description: "Toque na tarefa para status · segure ⋯ para gerenciar",
-    duration: 4000,
-  });
+const showHint = () => {
+  setTimeout(() => {
+    toast("Dica rápida", {
+      description: (
+        <span>
+          Toque no <kbd>status</kbd> para alterá-lo · segure <kbd>⋯</kbd> para
+          gerenciar
+        </span>
+      ),
+      duration: 4000,
+    });
+  }, 3000); // aparece após 3s
 };
 
 // ── Shared types ──────────────────────────────────────────────────────────────
@@ -357,11 +361,10 @@ export const TaskItem = ({
 
   const openMobileContext = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    showHintOnce();
+    showHint();
     setStatusOpen(false);
     setContextOpen((prev) => !prev);
   }, []);
-
 
   const isCompleted = task.status === "completed";
   const handleEdit = () => onEdit?.(task);
