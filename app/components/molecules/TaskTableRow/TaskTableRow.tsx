@@ -16,7 +16,7 @@ export const TaskTableRow = ({
   isSelected: boolean;
   onToggleSelect: () => void;
 }) => (
-  <TableRow className="bg-background hover:bg-background/95">
+  <TableRow className="bg-card hover:bg-card/95">
     <TableCell>
       <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
     </TableCell>

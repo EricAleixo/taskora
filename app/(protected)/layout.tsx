@@ -1,4 +1,4 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getUserAuthenticate } from "@/lib/getUserAuthenticate";
 import { profileService } from "@/src/server/db/services/profile.service";
 import { redirect } from "next/navigation";
@@ -40,8 +40,10 @@ export default async function ProjectLayout({
         <AppSidebar
           profile={sidebarData.profile}
           user={sidebarData.user}
-        />
-        <main className="w-full">{children}</main>
+          />
+        <main className="w-full">
+          {children}
+        </main>
       </SidebarProvider>
     </ProfileGate>
   );

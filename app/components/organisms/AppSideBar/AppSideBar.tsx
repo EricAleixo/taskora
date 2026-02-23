@@ -20,6 +20,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   LuSearch,
@@ -41,6 +42,10 @@ import { AnimatePresence, motion } from "framer-motion";
 export const AppSidebar = (props: AppSideBarI) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const { setOpenMobile } = useSidebar();
+
+  const closeMobile = () => setOpenMobile(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -79,7 +84,10 @@ export const AppSidebar = (props: AppSideBarI) => {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   className="w-full justify-start gap-3"
-                  onClick={() => setSearchOpen(true)}
+                  onClick={() => {
+                    setSearchOpen(true);
+                    closeMobile(); // <--
+                  }}
                 >
                   <LuSearch className="h-4 w-4" />
                   <span>Pesquisar</span>
@@ -141,6 +149,7 @@ export const AppSidebar = (props: AppSideBarI) => {
                           setIsProjectsOpen(!isProjectsOpen);
                         } else {
                           router.push("/projects");
+                          closeMobile(); // <--
                         }
                       }}
                     >
@@ -180,7 +189,10 @@ export const AppSidebar = (props: AppSideBarI) => {
                                 duration: 0.2,
                               }}
                             >
-                              <Link href={`/projects/${project.id}`}>
+                              <Link
+                                href={`/projects/${project.id}`}
+                                onClick={closeMobile}
+                              >
                                 <Button
                                   variant="ghost"
                                   className="w-full justify-start gap-2 h-8 px-2 text-sm font-normal relative pl-6 group"
@@ -198,7 +210,7 @@ export const AppSidebar = (props: AppSideBarI) => {
 
                   {/* Tarefas */}
                   <SidebarMenuItem>
-                    <Link href="/tasks">
+                    <Link href="/tasks" onClick={closeMobile}>
                       <SidebarMenuButton className="w-full justify-start gap-3">
                         <LuSquareCheck className="h-4 w-4" />
                         <span>Tarefas</span>

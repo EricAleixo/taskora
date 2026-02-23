@@ -26,10 +26,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
-  console.log(session)
   const theme = (session?.user as any)?.theme ?? "system";
 
-  console.log("Server: ", theme)
 
   return (
     <html lang="pt-br" suppressHydrationWarning>

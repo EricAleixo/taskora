@@ -18,6 +18,7 @@ import { ProjectModal } from "../../organisms/Modal/ProjectModal";
 import { useProjects } from "@/src/client/services/project/useProjects";
 import Link from "next/link";
 import { toastDeleteProject } from "../../molecules/ToastDeleteProject/ToastDeleteProject";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // ─── Delete Confirm Dialog ──────────────────────────────────────────────────────
 
@@ -457,15 +458,30 @@ export const ProjectsListPage = ({
       />
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background border-b">
-        <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between md:p-6 md:pb-4">
-          <nav className="flex items-center gap-2 text-muted-foreground text-lg md:text-2xl">
-            <LuFolderOpen className="h-5 w-5 md:h-7 md:w-7" />
-            <span className="text-foreground font-medium">Projetos</span>
-          </nav>
-          <ProjectModal mode="create" label="Novo Projeto" />
-        </div>
-      </div>
+<div className="sticky top-0 z-10 bg-background border-b flex items-center justify-between px-4 md:px-6">
+  <div className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between md:pb-4 flex-1">
+
+    {/* Mobile layout */}
+    <div className="flex items-center justify-between md:hidden">
+      <SidebarTrigger />
+      <nav className="flex items-center gap-2 text-foreground text-lg font-medium absolute left-1/2 -translate-x-1/2">
+        <LuFolderOpen className="h-5 w-5" />
+        <span>Projetos</span>
+      </nav>
+      <ProjectModal mode="create" label="Novo Projeto" />
+    </div>
+
+    {/* Desktop layout */}
+    <nav className="hidden md:flex items-center gap-2 text-muted-foreground text-2xl">
+      <LuFolderOpen className="h-7 w-7" />
+      <span className="text-foreground font-medium">Projetos</span>
+    </nav>
+    <div className="hidden md:block">
+      <ProjectModal mode="create" label="Novo Projeto" />
+    </div>
+
+  </div>
+</div>
 
       {/* Content */}
       <div className="flex-1 overflow-auto">

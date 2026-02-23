@@ -13,7 +13,7 @@ export const TasksCards = ({
 }) => (
   <div className="space-y-3 md:hidden">
     {tasks.length === 0 ? (
-      <div className="rounded-lg border bg-background p-8 text-center text-gray-500">
+      <div className="rounded-lg border bg-card p-8 text-center text-gray-500">
         Nenhuma tarefa encontrada
       </div>
     ) : (

@@ -1,21 +1,23 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { MdAdd } from "react-icons/md";
 import { useState } from "react";
 import { CollapsibleStatistics } from "../../molecules/CollapsibleStatistics/CollapsibleStatistics";
 import { TasksCards } from "../../molecules/TasksCard/TasksCards";
 import { TasksTable } from "../../organisms/Table/TaskTable";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTasks } from "@/src/client/services/tasks/useTasks";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const TasksHeader = () => (
   <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Tarefas</h1>
-      <p className="text-sm text-gray-500">
-        Gerencie todas as suas tarefas em um só lugar
-      </p>
+    <div className="flex items-center gap-3">
+      <SidebarTrigger className="sm:hidden" />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Tarefas</h1>
+        <p className="text-sm text-gray-500">
+          Gerencie todas as suas tarefas em um só lugar
+        </p>
+      </div>
     </div>
   </div>
 );

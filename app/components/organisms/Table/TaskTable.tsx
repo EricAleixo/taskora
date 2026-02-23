@@ -14,9 +14,9 @@ export const TasksTable = ({
   onToggleTask: (id: number) => void;
   onToggleAll: () => void;
 }) => (
-  <div className="hidden overflow-hidden rounded-lg border bg-background shadow-sm md:block">
+  <div className="hidden overflow-hidden rounded-lg border bg-card shadow-sm md:block">
     <Table>
-      <TableHeader className="bg-background">
+      <TableHeader className="bg-card">
         <TableRow>
           <TableHead className="w-12">
             <Checkbox

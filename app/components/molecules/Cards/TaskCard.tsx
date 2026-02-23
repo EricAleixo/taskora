@@ -17,7 +17,7 @@ export const TaskCard = ({
   isSelected: boolean;
   onToggleSelect: () => void;
 }) => (
-  <div className="rounded-lg border bg-background p-4 shadow-sm">
+  <div className="rounded-lg border bg-card p-4 shadow-sm">
     {/* Header do Card */}
     <div className="mb-3 flex items-start justify-between">
       <div className="flex flex-1 items-start gap-3">

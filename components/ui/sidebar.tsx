@@ -253,27 +253,40 @@ function Sidebar({
   )
 }
 
+
+import { ChevronLeft, ChevronRight } from "lucide-react"
+
 function SidebarTrigger({
   className,
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, open } = useSidebar()
 
   return (
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
-      variant="ghost"
+      variant="outline"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn(
+        "size-16 rounded-md border-2 border-border",
+        "transition-all duration-200",
+        "hover:bg-muted hover:border-foreground/30 active:scale-95",
+        "text-muted-foreground hover:text-foreground",
+        className
+      )}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      {open ? (
+        <ChevronLeft className="h-8 w-8 transition-all duration-300" />
+      ) : (
+        <ChevronRight className="h-8 w-8 transition-all duration-300" />
+      )}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

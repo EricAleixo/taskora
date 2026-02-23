@@ -15,8 +15,12 @@ import { LuChevronUp } from "react-icons/lu";
 import { LogOutBtn } from "../../atoms/Buttons/LogOutBtn";
 import { AppSideBarI } from "@/app/types/App";
 import { User } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const profileDropdown = (props: AppSideBarI) => {
+  const { setOpenMobile } = useSidebar();
+
+  const closeMobile = () => setOpenMobile(false);
 
   return (
     <DropdownMenu>
@@ -53,7 +57,9 @@ export const profileDropdown = (props: AppSideBarI) => {
           <LogOutBtn />
         </DropdownMenuItem>
         <Link className="cursor-pointer" href="/profile">
-          <DropdownMenuItem className="cursor-pointer"><User></User>Profile</DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={closeMobile}>
+            <User></User>Profile
+          </DropdownMenuItem>
         </Link>
       </DropdownMenuContent>
     </DropdownMenu>
