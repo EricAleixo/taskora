@@ -1,12 +1,11 @@
 import { taskService } from "@/src/server/db/services/task.service";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getUserAuthenticate } from "@/lib/getUserAuthenticate";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    const tasks = await taskService.getTasksByUser(session!.user.id);
+    const user = await getUserAuthenticate();
+    const tasks = await taskService.getTasksByUser(user.id);
 
     return NextResponse.json(tasks, { status: 200 });
   } catch (error: any) {
@@ -21,9 +20,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const session = await getServerSession(authOptions);
+    const user = await getUserAuthenticate();
 
-    const task = await taskService.createTask(session.user.id, body);
+    const task = await taskService.createTask(user.id, body);
 
     return NextResponse.json(task, { status: 201 });
   } catch (error: any) {

@@ -67,7 +67,6 @@ class ProjectRepository {
     description?: string | null;
     userId: number;
   }): Promise<Project> {
-    console.log(data);
     const [project] = await db.insert(projectTable).values(data).returning();
 
     return {

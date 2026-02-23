@@ -1,23 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LuPlus, LuX, LuFolderOpen, LuPencil } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 import { useCreateProject } from "@/src/client/services/project/useCreateProject";
 import { useUpdateProject } from "@/src/client/services/project/useUpdateProject";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface ProjectModalProps {
-  /** Modo de operação */
   mode: "create" | "edit";
-  /** Dados iniciais (apenas para mode="edit") */
   initialData?: {
     id: string;
     title: string;
     description?: string;
   };
-  /** Label customizado para o botão trigger (opcional) */
   label?: string;
-  /** Render customizado para o trigger (substitui o botão padrão) */
   trigger?: (open: () => void) => React.ReactNode;
 }
 
@@ -82,102 +79,112 @@ export const ProjectModal = ({
       )}
 
       {/* Modal */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-          onClick={(e) => e.target === e.currentTarget && handleClose()}
-        >
-          <div
-            className="relative w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={(e) => e.target === e.currentTarget && handleClose()}
           >
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
-                  {isEdit ? (
-                    <LuPencil className="h-4 w-4 text-primary" />
-                  ) : (
-                    <LuFolderOpen className="h-4 w-4 text-primary" />
-                  )}
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
+                    {isEdit ? (
+                      <LuPencil className="h-4 w-4 text-primary" />
+                    ) : (
+                      <LuFolderOpen className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                  <h2 className="font-semibold text-base text-foreground">
+                    {isEdit ? "Editar Projeto" : "Novo Projeto"}
+                  </h2>
                 </div>
-                <h2 className="font-semibold text-base text-foreground">
-                  {isEdit ? "Editar Projeto" : "Novo Projeto"}
-                </h2>
-              </div>
-              <button
-                onClick={handleClose}
-                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <LuX className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-
-              {/* Title */}
-              <div className="space-y-1.5">
-                <label htmlFor="title" className="text-sm font-medium text-foreground">
-                  Título <span className="text-destructive">*</span>
-                </label>
-                <input
-                  id="title"
-                  name="title"
-                  required
-                  minLength={3}
-                  autoFocus
-                  defaultValue={initialData?.title}
-                  placeholder="Ex: Redesign do App"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label htmlFor="description" className="text-sm font-medium text-foreground">
-                  Descrição
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={3}
-                  defaultValue={initialData?.description}
-                  placeholder="Detalhes sobre o projeto (opcional)"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition resize-none"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
+                <button
                   onClick={handleClose}
-                  disabled={isPending}
+                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
-                  Cancelar
-                </Button>
-                <Button type="submit" className="flex-1" disabled={isPending}>
-                  {isEdit ? (
-                    <>
-                      <LuPencil className="mr-1 h-4 w-4" />
-                      {isPending ? "Salvando..." : "Salvar"}
-                    </>
-                  ) : (
-                    <>
-                      <LuPlus className="mr-1 h-4 w-4" />
-                      {isPending ? "Criando..." : "Criar Projeto"}
-                    </>
-                  )}
-                </Button>
+                  <LuX className="h-5 w-5" />
+                </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+                {/* Title */}
+                <div className="space-y-1.5">
+                  <label htmlFor="title" className="text-sm font-medium text-foreground">
+                    Título <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="title"
+                    name="title"
+                    required
+                    minLength={3}
+                    autoFocus
+                    defaultValue={initialData?.title}
+                    placeholder="Ex: Redesign do App"
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <label htmlFor="description" className="text-sm font-medium text-foreground">
+                    Descrição
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows={3}
+                    defaultValue={initialData?.description}
+                    placeholder="Detalhes sobre o projeto (opcional)"
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition resize-none"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleClose}
+                    disabled={isPending}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="flex-1" disabled={isPending}>
+                    {isEdit ? (
+                      <>
+                        <LuPencil className="mr-1 h-4 w-4" />
+                        {isPending ? "Salvando..." : "Salvar"}
+                      </>
+                    ) : (
+                      <>
+                        <LuPlus className="mr-1 h-4 w-4" />
+                        {isPending ? "Criando..." : "Criar Projeto"}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

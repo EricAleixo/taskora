@@ -41,11 +41,11 @@ export const ProjectShowPage = ({ project: initialProject }: ProjectPageProps) =
             </span>
           </nav>
           <div className="flex items-center gap-2 md:gap-4 overflow-x-auto">
-            <button className="flex items-center whitespace-nowrap bg-secondary text-secondary-foreground rounded p-2 text-sm md:text-base transition-all duration-150 hover:bg-secondary/90">
+            <Link href={"/projects"} className="flex items-center whitespace-nowrap bg-secondary text-secondary-foreground rounded p-2 text-sm md:text-base transition-all duration-150 hover:bg-secondary/90">
               <CiGrid41 className="mr-1 h-5 w-5 md:h-6 md:w-6" />
               <span className="hidden sm:inline">Todos os projetos</span>
               <span className="sm:hidden">Projetos</span>
-            </button>
+            </Link>
             <TaskForm projectId={project.id}>
               <Button className="font-semibold">
                 <Plus></Plus>

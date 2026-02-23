@@ -1,16 +1,16 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getServerSession } from "next-auth";
+import { getUserAuthenticate } from "@/lib/getUserAuthenticate";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
-export default async function RegisterLayout({children}: {children: ReactNode}){
+export default async function RegisterLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
 
-    const session = await getServerSession(authOptions);
-    if(session?.user) return redirect("/projects");
-
-    return(
-        <section className="h-screen w-screen">
-            {children}
-        </section>
-    )
+  const user = await getUserAuthenticate();
+  if(user) return redirect("/projects");
+  
+  return <section className="h-screen w-screen">{children}</section>;
+  
 }

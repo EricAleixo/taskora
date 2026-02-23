@@ -1,27 +1,22 @@
-"use client"
+"use client";
+
+import Link from "next/link";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LuChevronUp } from "react-icons/lu"
-import { LogOutBtn } from "../../atoms/Buttons/LogOutBtn"
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LuChevronUp } from "react-icons/lu";
+import { LogOutBtn } from "../../atoms/Buttons/LogOutBtn";
+import { AppSideBarI } from "@/app/types/App";
+import { User } from "lucide-react";
 
-type Props = {
-  user: {
-    name?: string | null | undefined;
-    email?: string | null | undefined;
-    image?: string | null | undefined;
-  };
-}
-
-export const UserDropdown = ({ user }: Props) => {
-  if (!user.image || !user.name || !user.email) return null
+export const profileDropdown = (props: AppSideBarI) => {
 
   return (
     <DropdownMenu>
@@ -32,20 +27,20 @@ export const UserDropdown = ({ user }: Props) => {
         >
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Avatar className="h-10 w-10 border">
-              <AvatarImage src={user.image} />
+              <AvatarImage src={props.profile.avatarUrl} />
               <AvatarFallback>
-                {user.name
+                {props.profile.name
                   .split(" ")
-                  .map((n) => n[0])
+                  .map((n: string) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col flex-1 min-w-0 text-left">
               <p className="font-semibold text-sm truncate">
-                {user.name}
+                {props.profile.name}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {user.email}
+                {props.user.email}
               </p>
             </div>
           </div>
@@ -57,7 +52,10 @@ export const UserDropdown = ({ user }: Props) => {
         <DropdownMenuItem>
           <LogOutBtn />
         </DropdownMenuItem>
+        <Link href="/profile">
+          <DropdownMenuItem><User></User>Profile</DropdownMenuItem>
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
+  );
+};

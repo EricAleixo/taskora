@@ -1,4 +1,3 @@
-
 import { eq } from "drizzle-orm";
 import { db } from "..";
 import { profileTable, userTable } from "../schemas";
@@ -8,19 +7,15 @@ export const profileRepository = {
     const result = await db
       .select({
         profile: profileTable,
+        user: userTable,
       })
-      .from(userTable)
-      .leftJoin(
-        profileTable,
-        eq(userTable.profileId, profileTable.id)
-      )
-      .where(eq(userTable.id, userId));
+      .from(profileTable)
+      .innerJoin(userTable, eq(profileTable.userId, userTable.id))
+      .where(eq(profileTable.userId, userId));
 
-    if (!result.length || !result[0].profile) {
-      return null;
-    }
+    if (!result.length) return null;
 
-    return result[0].profile;
+    return result[0];
   },
 
   async findById(id: number) {
@@ -32,11 +27,13 @@ export const profileRepository = {
     return profile ?? null;
   },
 
-  async create(data: typeof profileTable.$inferInsert) {
-    const [profile] = await db
-      .insert(profileTable)
-      .values(data)
-      .returning();
+  async create(
+    data: Omit<
+      typeof profileTable.$inferInsert,
+      "id" | "createdAt" | "updatedAt"
+    >,
+  ) {
+    const [profile] = await db.insert(profileTable).values(data).returning();
 
     return profile;
   },

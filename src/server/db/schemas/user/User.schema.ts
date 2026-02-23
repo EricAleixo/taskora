@@ -1,12 +1,5 @@
-import {
-  pgTable,
-  serial,
-  varchar,
-  timestamp,
-  integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
 import { roleUserEnum } from "./Role.schema";
-import { profileTable } from "./Profile.schema";
 
 export const userTable = pgTable("user", {
   id: serial("id").primaryKey(),
@@ -16,10 +9,6 @@ export const userTable = pgTable("user", {
     .unique(),
 
   password: varchar("password", { length: 255 }),
-
-  profileId: integer("profile_id").references(() => profileTable.id, {
-    onDelete: "cascade"
-  }),
 
   role: roleUserEnum("role")
     .default("USER")

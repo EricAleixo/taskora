@@ -25,9 +25,10 @@ export async function GET(_: Request, { params }: Params) {
 export async function PUT(request: Request, { params }: Params) {
   try {
     const body = await request.json();
+    const { id } = await params;
 
     const profile = await profileService.updateProfile(
-      Number(params.id),
+      Number(id),
       body
     );
 

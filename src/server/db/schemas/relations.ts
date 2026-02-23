@@ -6,8 +6,15 @@ import { taskTable } from "./task/Task.schema";
 
 export const userRelations = relations(userTable, ({ one }) => ({
   profile: one(profileTable, {
-    fields: [userTable.profileId],
-    references: [profileTable.id]
+    fields: [userTable.id],
+    references: [profileTable.userId],
+  }),
+}));
+
+export const profileRelations = relations(profileTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [profileTable.userId],
+    references: [userTable.id],
   }),
 }));
 

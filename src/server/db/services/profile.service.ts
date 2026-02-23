@@ -1,12 +1,9 @@
 import { profileRepository } from "../repository/profile.repository";
+import { profileTable } from "../schemas";
 
 class ProfileService {
   async getProfileByUserId(userId: number) {
     const profile = await profileRepository.findByUserId(userId);
-
-    if (!profile) {
-      throw new Error("Perfil não encontrado para este usuário");
-    }
 
     return profile;
   }
@@ -14,29 +11,27 @@ class ProfileService {
   async getProfileById(id: number) {
     const profile = await profileRepository.findById(id);
 
-    if (!profile) {
-      throw new Error("Perfil não encontrado");
-    }
 
     return profile;
   }
 
-  async createProfile(data: typeof profileRepository.create extends (
-    arg: infer T
-  ) => any
-    ? T
-    : never) {
-    return profileRepository.create(data);
+  async createProfile(
+    userId: number,
+    data: Omit<typeof profileTable.$inferInsert, "userId">,
+  ) {
+    return profileRepository.create({
+      ...data,
+      userId,
+    });
   }
 
   async updateProfile(
     id: number,
-    data: Partial<typeof profileRepository.update extends (
-      id: any,
-      arg: infer T
-    ) => any
-      ? T
-      : never>
+    data: Partial<
+      typeof profileRepository.update extends (id: any, arg: infer T) => any
+        ? T
+        : never
+    >,
   ) {
     const profile = await profileRepository.update(id, data);
 

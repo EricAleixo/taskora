@@ -2,7 +2,7 @@ import { Task } from "@/app/types/Task";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Edit } from "lucide-react";
+import { Edit, EllipsisVertical } from "lucide-react";
 import { LuMoveVertical, LuEye, LuTrash2, LuCalendar, LuClock } from "react-icons/lu";
 import { TaskStatusBadge } from "../../atoms/TaskStatusBadge/TaskStatusBadge";
 import { formatDate } from "@/lib/formatDate";
@@ -17,7 +17,7 @@ export const TaskCard = ({
   isSelected: boolean;
   onToggleSelect: () => void;
 }) => (
-  <div className="rounded-lg border bg-white p-4 shadow-sm">
+  <div className="rounded-lg border bg-background p-4 shadow-sm">
     {/* Header do Card */}
     <div className="mb-3 flex items-start justify-between">
       <div className="flex flex-1 items-start gap-3">
@@ -36,7 +36,7 @@ export const TaskCard = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8">
-            <LuMoveVertical className="h-4 w-4" />
+            <EllipsisVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

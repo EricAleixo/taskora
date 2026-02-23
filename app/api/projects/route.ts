@@ -1,43 +1,34 @@
 import { projectService } from "@/src/server/db/services/project.service";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getUserAuthenticate } from "@/lib/getUserAuthenticate";
 
 export async function GET(req: Request) {
   try {
-
-    const session = await getServerSession(authOptions);
-    const projectsByUser = await projectService.getUserProjects(session.user.id);
+    const user = await getUserAuthenticate();
+    const projectsByUser = await projectService.getUserProjects(
+      user.id,
+    );
 
     return NextResponse.json(projectsByUser, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json(
-      { message: error.message },
-      { status: 400 }
-    );
+    console.log(error.message)
+    return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }
-
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const session = await getServerSession(authOptions);
+    const user = await getUserAuthenticate();
 
-    const project = await projectService.createProject(
-      session!.user.id,
-      {
-        title: body.title,
-        description: body.description,
-      }
-    );
+    const project = await projectService.createProject(user.id, {
+      title: body.title,
+      description: body.description,
+    });
 
     return NextResponse.json(project, { status: 201 });
   } catch (error: any) {
-    console.log(error.message)
-    return NextResponse.json(
-      { message: error.message },
-      { status: 400 }
-    );
+    console.log(error.message);
+    return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }

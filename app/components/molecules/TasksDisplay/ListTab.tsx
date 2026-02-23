@@ -3,6 +3,7 @@ import { useState } from "react";
 import { TaskItem } from "../../atoms/TaskItem/TaskItem";
 import { Task } from "@/app/types/Task";
 import { TaskForm } from "../../organisms/Modal/TaskForm";
+import { DeleteTaskModal } from "../../organisms/Modal/DeleteTaskModal";
 
 interface ListTabProps {
   project: any;
@@ -41,6 +42,7 @@ export const ListTab = ({ project }: ListTabProps) => {
 
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [creatingTask, setCreatingTask] = useState(false);
 
   const filtered =
@@ -120,6 +122,7 @@ export const ListTab = ({ project }: ListTabProps) => {
                 isLast={idx === sorted.length - 1}
                 statusConfig={statusConfig}
                 onEdit={(task) => setEditingTask(task)}
+                onDelete={(task) => setDeletingTask(task)}
               />
             ))}
           </ul>
@@ -167,6 +170,16 @@ export const ListTab = ({ project }: ListTabProps) => {
         onClose={() => setEditingTask(null)}
         onDelete={() => setEditingTask(null)}
       />
+
+      {/* Modal: excluir */}
+      {deletingTask && (
+        <DeleteTaskModal
+          task={deletingTask}
+          projectId={project.id}
+          open={!!deletingTask}
+          onClose={() => setDeletingTask(null)}
+        />
+      )}
     </div>
   );
 };

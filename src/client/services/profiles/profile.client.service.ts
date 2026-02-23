@@ -1,4 +1,4 @@
-import { Profile } from "@/app/types/Profile";
+import { Profile, ProfileWithUser } from "@/app/types/Profile";
 import { api } from "../api";
 
 export interface CreateProfileDTO {
@@ -22,8 +22,8 @@ export interface UpdateProfileDTO {
 }
 
 export const ProfileClientService = {
-  async getMe(): Promise<Profile> {
-    const { data } = await api.get<Profile>("/profile/me");
+  async getMe(): Promise<ProfileWithUser> {
+    const { data } = await api.get<ProfileWithUser>("/profile/me");
     return data;
   },
 

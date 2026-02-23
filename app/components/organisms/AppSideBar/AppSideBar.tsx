@@ -1,12 +1,10 @@
 "use client";
 import dynamic from "next/dynamic";
 
-const UserDropdown = dynamic(
-  () => import("./UserDropDown").then(mod => mod.UserDropdown),
-  { ssr: false }
+const ProfileDropdown = dynamic(
+  () => import("./ProfileDropDown").then((mod) => mod.profileDropdown),
+  { ssr: false },
 );
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,14 +20,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   LuSearch,
-  LuActivity,
   LuFolder,
   LuSquareCheck,
   LuCommand,
@@ -39,20 +30,20 @@ import {
 import { MdOutlineExpandMore } from "react-icons/md";
 import { useState } from "react";
 import Link from "next/link";
-import { LogOutBtn } from "../../atoms/Buttons/LogOutBtn";
 import { useProjects } from "@/src/client/services/project/useProjects";
+import { usePathname, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppSideBarI } from "@/app/types/App";
 
-type AppSideBarI = {
-  user: {
-    name?: string | null | undefined;
-    email?: string | null | undefined;
-    image?: string | null | undefined;
-  };
-};
-
-export const AppSidebar = ({ user }: AppSideBarI) => {
+export const AppSidebar = (props: AppSideBarI) => {
+  console.log(props.profile)
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const isOnProjectsPage =
+    pathname === "/projects" || pathname.startsWith("/projects/");
+
   const { data, isPending, error } = useProjects();
 
   if (error) return null;
@@ -146,18 +137,25 @@ export const AppSidebar = ({ user }: AppSideBarI) => {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     className="w-full justify-start gap-3"
-                    onClick={() => setIsProjectsOpen(!isProjectsOpen)}
+                    onClick={() => {
+                      if (isOnProjectsPage) {
+                        setIsProjectsOpen(!isProjectsOpen);
+                      } else {
+                        router.push("/projects");
+                      }
+                    }}
                   >
                     <LuFolder className="h-4 w-4" />
                     <span>Projetos</span>
                     <Badge className="ml-auto bg-primary text-primary-foreground h-5 px-2 text-xs">
                       {data.length}
                     </Badge>
-                    {isProjectsOpen ? (
-                      <LuChevronUp className="h-4 w-4" />
-                    ) : (
-                      <LuChevronDown className="h-4 w-4" />
-                    )}
+                    {data.length !== 0 &&
+                      (isProjectsOpen ? (
+                        <LuChevronUp className="h-4 w-4" />
+                      ) : (
+                        <LuChevronDown className="h-4 w-4" />
+                      ))}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
@@ -190,19 +188,8 @@ export const AppSidebar = ({ user }: AppSideBarI) => {
                     <SidebarMenuButton className="w-full justify-start gap-3">
                       <LuSquareCheck className="h-4 w-4" />
                       <span>Tarefas</span>
-                      <Badge className="ml-auto bg-primary text-primary-foreground h-5 px-2 text-xs">
-                        10
-                      </Badge>
                     </SidebarMenuButton>
                   </Link>
-                </SidebarMenuItem>
-
-                {/* Atividades */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton className="w-full justify-start gap-3">
-                    <LuActivity className="h-4 w-4" />
-                    <span>Atividades</span>
-                  </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
@@ -211,8 +198,8 @@ export const AppSidebar = ({ user }: AppSideBarI) => {
       </SidebarContent>
 
       <SidebarFooter className="border-t p-4">
-        {user.image && user.name && user.email && (
-          <UserDropdown user={user}/>
+        {props.profile && (
+          <ProfileDropdown profile={props.profile} user={props.user} />
         )}
       </SidebarFooter>
     </Sidebar>

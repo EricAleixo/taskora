@@ -1,24 +1,46 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ReactNode } from "react";
-import { AppSidebar } from "../components/organisms/AppSideBar/AppSideBar";
-import { getServerSession } from "next-auth";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { getUserAuthenticate } from "@/lib/getUserAuthenticate";
+import { profileService } from "@/src/server/db/services/profile.service";
 import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { ReactNode } from "react";
 import { ProfileGate } from "../components/guards/ProfileGate";
+import { AppSidebar } from "../components/organisms/AppSideBar/AppSideBar";
+import { AppSideBarI } from "../types/App";
 
 export default async function ProjectLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const user = await getUserAuthenticate();
 
-  if (!session?.user) return redirect("/login");
+  // 🔥 Só bloqueia se não estiver logado
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Perfil agora é opcional
+  const data = await profileService.getProfileByUserId(user.id);
+
+  const sidebarData: AppSideBarI = {
+    profile: {
+      name: data?.profile.name ?? user.email,
+      avatarUrl: data?.profile.avatarUrl ?? null,
+    },
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+  };
 
   return (
-    <ProfileGate>
+    <ProfileGate user={user}>
       <SidebarProvider>
-        <AppSidebar user={session.user} />
+        <AppSidebar
+          profile={sidebarData.profile}
+          user={sidebarData.user}
+        />
         <main className="w-full">{children}</main>
       </SidebarProvider>
     </ProfileGate>

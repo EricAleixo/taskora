@@ -1,34 +1,75 @@
 import { Task } from "@/app/types/Task";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { classifyTasks } from "@/lib/classifyTasks";
 import { AnimatePresence, motion } from "framer-motion";
 import { CardTask } from "../../molecules/Cards/CardTask";
 import { MdMoreHoriz } from "react-icons/md";
-import { LuPlus, LuChevronRight } from "react-icons/lu";
+import { LuPlus, LuChevronRight, LuClock, LuArrowDownAZ } from "react-icons/lu";
 import { useRef, useState, useEffect } from "react";
 import { TaskForm } from "../../organisms/Modal/TaskForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface BoardTabProps {
   project: any;
 }
 
-type TaskStatus =
-  | "pending"
-  | "completed"
-  | "in_progress"
-  | "cancelled"
-  | "review";
+type TaskStatus = "pending" | "completed" | "in_progress" | "review";
+type SortOption = "newest" | "oldest" | "alphabetical";
 
 const statusColors: Record<string, string> = {
-  "Para Fazer": "bg-amber-400",
+  "Para Fazer":   "bg-amber-400",
   "Em Progresso": "bg-blue-400",
-  Revisando: "bg-purple-400",
-  Finalizada: "bg-green-400",
+  Revisando:      "bg-purple-400",
+  Finalizada:     "bg-green-400",
 };
 
-const ColumnHeader = ({ title, count }: { title: string; count: number }) => (
+const sortTasks = (tasks: Task[], sort: SortOption): Task[] => {
+  switch (sort) {
+    case "newest":
+      return [...tasks].sort(
+        (a, b) =>
+          new Date(b.createdAt ?? 0).getTime() -
+          new Date(a.createdAt ?? 0).getTime(),
+      );
+    case "oldest":
+      return [...tasks].sort(
+        (a, b) =>
+          new Date(a.createdAt ?? 0).getTime() -
+          new Date(b.createdAt ?? 0).getTime(),
+      );
+    case "alphabetical":
+      return [...tasks].sort((a, b) => a.title.localeCompare(b.title));
+    default:
+      return tasks;
+  }
+};
+
+// ── ColumnHeader ──────────────────────────────────────────────────────────────
+
+const ColumnHeader = ({
+  title,
+  count,
+  projectId,
+  defaultStatus,
+  sort,
+  onSortChange,
+}: {
+  title: string;
+  count: number;
+  projectId: number;
+  defaultStatus: TaskStatus;
+  sort: SortOption;
+  onSortChange: (sort: SortOption) => void;
+}) => (
   <div className="w-full flex items-center justify-between mb-4">
     <div className="flex items-center gap-2">
       <span
@@ -40,16 +81,62 @@ const ColumnHeader = ({ title, count }: { title: string; count: number }) => (
         <p className="text-gray-500">{count}</p>
       </div>
     </div>
-    <div className="flex items-center gap-3">
-      <button className="hover:bg-primary/20 p-1 rounded-full">
-        <LuPlus className="h-6 w-6" />
-      </button>
-      <button className="hover:text-primary/80 p-1 rounded-full">
-        <MdMoreHoriz className="h-6 w-6" />
-      </button>
+    <div className="flex items-center gap-1">
+      <TaskForm projectId={projectId} initialValues={{ status: defaultStatus }}>
+        <button className="hover:bg-primary/20 p-1 rounded-full transition-colors">
+          <LuPlus className="h-5 w-5" />
+        </button>
+      </TaskForm>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="hover:bg-muted p-1 rounded-full transition-colors">
+            <MdMoreHoriz className="h-5 w-5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuLabel className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+            Ordenar por
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {(
+            [
+              {
+                value: "newest",
+                label: "Mais recentes",
+                icon: <LuClock className="h-4 w-4 shrink-0" />,
+              },
+              {
+                value: "oldest",
+                label: "Mais antigas",
+                icon: <LuClock className="h-4 w-4 shrink-0 scale-x-[-1]" />,
+              },
+              {
+                value: "alphabetical",
+                label: "Ordem A–Z",
+                icon: <LuArrowDownAZ className="h-4 w-4 shrink-0" />,
+              },
+            ] as { value: SortOption; label: string; icon: React.ReactNode }[]
+          ).map(({ value, label, icon }) => (
+            <DropdownMenuItem
+              key={value}
+              onClick={() => onSortChange(value)}
+              className={`flex items-center gap-2 cursor-pointer ${sort === value ? "text-primary font-medium" : ""}`}
+            >
+              {icon}
+              {label}
+              {sort === value && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   </div>
 );
+
+// ── Column ────────────────────────────────────────────────────────────────────
 
 const Column = ({
   title,
@@ -61,44 +148,65 @@ const Column = ({
   tasks: Task[];
   projectId: number;
   defaultStatus?: TaskStatus;
-}) => (
-  <div className="flex flex-col min-w-70 lg:min-w-0">
-    <ColumnHeader title={title} count={tasks.length} />
-    <ScrollArea className="flex-1">
-      <div className="space-y-3 pb-4">
-        <AnimatePresence initial={false}>
-          {tasks.map((task) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: -10, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-            >
-              <div
-                className="transition-opacity duration-300"
-                style={{ opacity: task.isOptimistic ? 0.5 : 1 }}
-              >
-                <CardTask task={task} />
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        <TaskForm projectId={projectId}>
-          <Button
-            className="text-gray-600 w-full justify-start"
-            variant={"ghost"}
-          >
-            <Plus></Plus>
-            Adicionar
-          </Button>
-        </TaskForm>
-      </div>
-    </ScrollArea>
-  </div>
-);
+}) => {
+  const [sort, setSort] = useState<SortOption>("newest");
+  const sorted = sortTasks(tasks, sort);
 
-/** Dot indicators showing which column is most visible on mobile */
+  return (
+    <div className="flex flex-col min-w-70 lg:min-w-0">
+      <ColumnHeader
+        title={title}
+        count={tasks.length}
+        projectId={projectId}
+        defaultStatus={defaultStatus}
+        sort={sort}
+        onSortChange={setSort}
+      />
+      <ScrollArea className="flex-1">
+        <div className="space-y-3 pb-4">
+          <AnimatePresence initial={false}>
+            {sorted.map((task) => (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
+                <div
+                  className="transition-opacity duration-300"
+                  style={{ opacity: task.isOptimistic ? 0.5 : 1 }}
+                >
+                  {/*
+                    Injeta projectId no task caso o backend não o retorne.
+                    Isso garante que useDeleteTask e useUpdateTask
+                    invalidem o cache com a query key correta.
+                  */}
+                  <CardTask task={{ ...task, projectId }} />
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          <TaskForm
+            projectId={projectId}
+            initialValues={{ status: defaultStatus }}
+          >
+            <Button
+              className="text-gray-600 w-full justify-start"
+              variant="ghost"
+            >
+              <Plus />
+              Adicionar
+            </Button>
+          </TaskForm>
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
+
+// ── Mobile helpers ────────────────────────────────────────────────────────────
+
 const MobileDotIndicators = ({
   total,
   activeIndex,
@@ -115,15 +223,12 @@ const MobileDotIndicators = ({
           opacity: i === activeIndex ? 1 : 0.35,
         }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className={`h-1.5 rounded-full ${
-          i === activeIndex ? "bg-primary" : "bg-gray-300"
-        }`}
+        className={`h-1.5 rounded-full ${i === activeIndex ? "bg-primary" : "bg-gray-300"}`}
       />
     ))}
   </div>
 );
 
-/** Fade + chevron hint that fades away after first scroll */
 const SwipeHint = ({ visible }: { visible: boolean }) => (
   <AnimatePresence>
     {visible && (
@@ -134,7 +239,6 @@ const SwipeHint = ({ visible }: { visible: boolean }) => (
         transition={{ duration: 0.4 }}
         className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center pr-2 z-10"
       >
-        {/* Gradient fade on the right edge */}
         <div className="absolute right-0 top-0 bottom-0 w-16 bg-linear-to-l from-background to-transparent" />
         <motion.div
           animate={{ x: [0, 5, 0] }}
@@ -148,37 +252,34 @@ const SwipeHint = ({ visible }: { visible: boolean }) => (
   </AnimatePresence>
 );
 
+type ColumnDef = { title: string; tasks: Task[]; defaultStatus: TaskStatus };
+
 const MobileBoardScroll = ({
   columnDefs,
   projectId,
 }: {
-  columnDefs: { title: string; tasks: Task[]; defaultStatus: TaskStatus }[];
+  columnDefs: ColumnDef[];
   projectId: number;
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [showHint, setShowHint] = useState(true);
 
-  // Track which column is most visible
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-
     const handleScroll = () => {
       if (showHint) setShowHint(false);
-      const scrollLeft = el.scrollLeft;
       const colWidth = el.scrollWidth / columnDefs.length;
-      const idx = Math.round(scrollLeft / colWidth);
+      const idx = Math.round(el.scrollLeft / colWidth);
       setActiveIndex(Math.min(Math.max(idx, 0), columnDefs.length - 1));
     };
-
     el.addEventListener("scroll", handleScroll, { passive: true });
     return () => el.removeEventListener("scroll", handleScroll);
   }, [columnDefs.length, showHint]);
 
   return (
     <div className="md:hidden">
-      {/* Column name pill tabs for quick orientation */}
       <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none px-1 pb-1">
         {columnDefs.map((col, i) => (
           <button
@@ -186,8 +287,10 @@ const MobileBoardScroll = ({
             onClick={() => {
               const el = scrollRef.current;
               if (!el) return;
-              const colWidth = el.scrollWidth / columnDefs.length;
-              el.scrollTo({ left: colWidth * i, behavior: "smooth" });
+              el.scrollTo({
+                left: (el.scrollWidth / columnDefs.length) * i,
+                behavior: "smooth",
+              });
             }}
             className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
               i === activeIndex
@@ -204,7 +307,6 @@ const MobileBoardScroll = ({
         ))}
       </div>
 
-      {/* Scrollable board */}
       <div className="relative">
         <SwipeHint visible={showHint} />
         <div
@@ -228,7 +330,6 @@ const MobileBoardScroll = ({
         </div>
       </div>
 
-      {/* Dot progress indicators */}
       <MobileDotIndicators
         total={columnDefs.length}
         activeIndex={activeIndex}
@@ -237,10 +338,12 @@ const MobileBoardScroll = ({
   );
 };
 
+// ── BoardTab ──────────────────────────────────────────────────────────────────
+
 export const BoardTab = ({ project }: BoardTabProps) => {
   const columns = classifyTasks(project.tasks ?? []);
 
-  const columnDefs = [
+  const columnDefs: ColumnDef[] = [
     {
       title: "Para Fazer",
       tasks: columns.toDo,
@@ -265,33 +368,46 @@ export const BoardTab = ({ project }: BoardTabProps) => {
 
   return (
     <>
-      {/* Desktop: 4 colunas */}
-      <div className="hidden lg:grid lg:grid-cols-4 gap-6 bg-card p-3 rounded-xl border border-gray-100 shadow min-h-[calc(100vh-300px)]">
-        {columnDefs.map((col) => (
-          <Column
-            key={col.title}
-            title={col.title}
-            tasks={col.tasks}
-            projectId={project.id}
-            defaultStatus={col.defaultStatus}
-          />
-        ))}
+      <div
+        className="hidden lg:block rounded-xl min-h-[calc(100vh-300px)] p-px"
+        style={{
+          background:
+            "linear-gradient(to right, transparent, rgb(36, 161, 54), transparent)",
+        }}
+      >
+        <div className="grid lg:grid-cols-4 gap-6 bg-card p-3 rounded-xl shadow min-h-[calc(100vh-300px)]">
+          {columnDefs.map((col) => (
+            <Column
+              key={col.title}
+              title={col.title}
+              tasks={col.tasks}
+              projectId={project.id}
+              defaultStatus={col.defaultStatus}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Tablet: 2 colunas */}
-      <div className="hidden md:grid lg:hidden md:grid-cols-2 gap-4 bg-card p-3 rounded-xl border border-gray-100 shadow">
-        {columnDefs.map((col) => (
-          <Column
-            key={col.title}
-            title={col.title}
-            tasks={col.tasks}
-            projectId={project.id}
-            defaultStatus={col.defaultStatus}
-          />
-        ))}
+      <div
+        className="hidden md:block lg:hidden rounded-xl p-px"
+        style={{
+          background:
+            "linear-gradient(to right, transparent, rgb(36, 161, 54), transparent)",
+        }}
+      >
+        <div className="grid md:grid-cols-2 gap-4 bg-card p-3 rounded-xl shadow">
+          {columnDefs.map((col) => (
+            <Column
+              key={col.title}
+              title={col.title}
+              tasks={col.tasks}
+              projectId={project.id}
+              defaultStatus={col.defaultStatus}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Mobile: snap scroll com indicadores */}
       <MobileBoardScroll columnDefs={columnDefs} projectId={project.id} />
     </>
   );

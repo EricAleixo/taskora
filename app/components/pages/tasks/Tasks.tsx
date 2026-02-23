@@ -17,15 +17,11 @@ const TasksHeader = () => (
         Gerencie todas as suas tarefas em um só lugar
       </p>
     </div>
-    <Button className="w-full sm:w-auto">
-      <MdAdd className="mr-2 h-5 w-5" />
-      Nova Tarefa
-    </Button>
   </div>
 );
 
 export const Tasks = () => {
-  const [searchQuery, setSearchQuery]   = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
   const [showStatistics, setShowStatistics] = useState(true);
@@ -61,12 +57,11 @@ export const Tasks = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
+    <div className="flex h-screen flex-col bg-background">
       {/* Header Fixo */}
-      <div className="border-b bg-white">
+      <div className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-6 md:px-6">
           <TasksHeader />
-
           <CollapsibleStatistics
             isOpen={showStatistics}
             onToggle={() => setShowStatistics(!showStatistics)}
@@ -89,7 +84,6 @@ export const Tasks = () => {
               onToggleTask={toggleTaskSelection}
               onToggleAll={toggleAllTasks}
             />
-
             <TasksCards
               tasks={filteredTasks}
               selectedTasks={selectedTasks}

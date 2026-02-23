@@ -1,7 +1,6 @@
 import { projectService } from "@/src/server/db/services/project.service";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { getUserAuthenticate } from "@/lib/getUserAuthenticate";
 
 export async function GET(
   _: Request,
@@ -9,12 +8,11 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    const userId = session.user.id;
+    const user = await getUserAuthenticate();
 
     const project = await projectService.getProjectById(
       Number(id),
-      userId
+      user.id
     );
 
     return NextResponse.json(project);
@@ -34,12 +32,11 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const session = await getServerSession(authOptions);
-    const userId = session.user.id;
+    const user = await getUserAuthenticate();
 
     const updatedProject = await projectService.updateProject(
       Number(id),
-      userId,
+      user.id,
       {
         title: body.title,
         description: body.description,
@@ -62,16 +59,16 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const session = await getServerSession(authOptions);
+    const user = await getUserAuthenticate();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { message: "Não autenticado" },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
 
     await projectService.deleteProject(Number(id), userId);
 

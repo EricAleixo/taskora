@@ -16,49 +16,49 @@ export const TaskTableRow = ({
   isSelected: boolean;
   onToggleSelect: () => void;
 }) => (
-  <TableRow>
+  <TableRow className="bg-background hover:bg-background/95">
     <TableCell>
       <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
     </TableCell>
     <TableCell>
       <div className="max-w-md">
-        <div className="font-medium">{task.title}</div>
+        <div className="font-medium text-foreground">{task.title}</div>
         {task.description && (
-          <div className="mt-1 text-sm text-gray-500">{task.description}</div>
+          <div className="mt-1 text-sm text-muted-foreground">{task.description}</div>
         )}
       </div>
     </TableCell>
-    <TableCell className="text-sm text-gray-500">
+    <TableCell className="text-sm text-muted-foreground">
       {task.project.title || "—"}
     </TableCell>
     <TableCell>
       <TaskStatusBadge status={task.status} />
     </TableCell>
     <TableCell>
-      <div className="flex items-center gap-2 text-sm">
-        <LuCalendar className="h-4 w-4 text-gray-400" />
+      <div className="flex items-center gap-2 text-sm text-foreground">
+        <LuCalendar className="h-4 w-4 text-muted-foreground" />
         {formatDate(task.date)}
       </div>
     </TableCell>
     <TableCell>
       {task.startTime && task.endTime ? (
-        <div className="flex items-center gap-2 text-sm">
-          <LuClock className="h-4 w-4 text-gray-400" />
+        <div className="flex items-center gap-2 text-sm text-foreground">
+          <LuClock className="h-4 w-4 text-muted-foreground" />
           {task.startTime} - {task.endTime}
         </div>
       ) : (
-        <span className="text-gray-400">—</span>
+        <span className="text-muted-foreground">—</span>
       )}
     </TableCell>
     <TableCell className="text-sm">
       {task.duration ? (
-        <span className="text-gray-600">{task.duration} min</span>
+        <span className="text-foreground">{task.duration} min</span>
       ) : (
-        <span className="text-gray-400">—</span>
+        <span className="text-muted-foreground">—</span>
       )}
     </TableCell>
     <TableCell>
-      <TaskActionsMenu />
+      <TaskActionsMenu task={task}/>
     </TableCell>
   </TableRow>
 );
