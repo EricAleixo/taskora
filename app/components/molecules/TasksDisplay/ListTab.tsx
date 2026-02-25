@@ -1,5 +1,6 @@
 import { Plus, Circle, CircleDot, Eye, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { TaskItem } from "../../atoms/TaskItem/TaskItem";
 import { Task } from "@/app/types/Task";
 import { TaskForm } from "../../organisms/Modal/TaskForm";
@@ -36,6 +37,31 @@ const statusConfig: Record<
 };
 
 const STATUS_ORDER = ["pending", "in_progress", "review", "completed"];
+
+const listVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.04,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.22, ease: [0.25, 0.1, 0.25, 1] },
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    scale: 0.97,
+    transition: { duration: 0.15, ease: [0.4, 0, 1, 1] },
+  },
+};
 
 export const ListTab = ({ project }: ListTabProps) => {
   const tasks: Task[] = project.tasks ?? [];
@@ -108,25 +134,41 @@ export const ListTab = ({ project }: ListTabProps) => {
         </div>
 
         {/* Rows */}
-        {sorted.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
-            <Circle size={32} className="opacity-20" />
-            <p className="text-sm">Nenhuma tarefa encontrada.</p>
-          </div>
-        ) : (
-          <ul>
-            {sorted.map((task, idx) => (
-              <TaskItem
-                key={task.id ?? idx}
-                task={task}
-                isLast={idx === sorted.length - 1}
-                statusConfig={statusConfig}
-                onEdit={(task) => setEditingTask(task)}
-                onDelete={(task) => setDeletingTask(task)}
-              />
-            ))}
-          </ul>
-        )}
+        <AnimatePresence mode="wait">
+          {sorted.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2"
+            >
+              <Circle size={32} className="opacity-20" />
+              <p className="text-sm">Nenhuma tarefa encontrada.</p>
+            </motion.div>
+          ) : (
+            <motion.ul
+              key={activeFilter}
+              variants={listVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              {sorted.map((task, idx) => (
+                <motion.li key={task.id ?? idx} variants={itemVariants}>
+                  <TaskItem
+                    task={task}
+                    isLast={idx === sorted.length - 1}
+                    statusConfig={statusConfig}
+                    onEdit={(task) => setEditingTask(task)}
+                    onDelete={(task) => setDeletingTask(task)}
+                  />
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
 
         {/* Add task row */}
         <button
