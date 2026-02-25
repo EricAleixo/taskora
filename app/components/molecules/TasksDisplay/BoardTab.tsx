@@ -26,10 +26,10 @@ type TaskStatus = "pending" | "completed" | "in_progress" | "review";
 type SortOption = "newest" | "oldest" | "alphabetical";
 
 const statusColors: Record<string, string> = {
-  "Para Fazer":   "bg-amber-400",
+  "Para Fazer": "bg-amber-400",
   "Em Progresso": "bg-blue-400",
-  Revisando:      "bg-purple-400",
-  Finalizada:     "bg-green-400",
+  Revisando: "bg-purple-400",
+  Finalizada: "bg-green-400",
 };
 
 const sortTasks = (tasks: Task[], sort: SortOption): Task[] => {
@@ -177,11 +177,6 @@ const Column = ({
                   className="transition-opacity duration-300"
                   style={{ opacity: task.isOptimistic ? 0.5 : 1 }}
                 >
-                  {/*
-                    Injeta projectId no task caso o backend não o retorne.
-                    Isso garante que useDeleteTask e useUpdateTask
-                    invalidem o cache com a query key correta.
-                  */}
                   <CardTask task={{ ...task, projectId }} />
                 </div>
               </motion.div>
@@ -292,11 +287,10 @@ const MobileBoardScroll = ({
                 behavior: "smooth",
               });
             }}
-            className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-              i === activeIndex
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${i === activeIndex
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-muted text-muted-foreground"
-            }`}
+              }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${statusColors[col.title] ?? "bg-gray-400"}`}

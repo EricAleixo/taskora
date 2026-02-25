@@ -8,6 +8,13 @@
       "when": 1771862892863,
       "tag": "0000_flawless_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772042399309,
+      "tag": "0001_parched_bedlam",
+      "breakpoints": true
     }
   ]
 }

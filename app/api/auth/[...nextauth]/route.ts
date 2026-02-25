@@ -36,7 +36,8 @@ export const authOptions = {
         }
 
         return true;
-      } catch {
+      } catch(error: any) {
+        console.error("SIGNIN ERROR:", error);
         return false;
       }
     },

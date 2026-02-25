@@ -89,9 +89,8 @@ const ContextMenu = ({
               ? { position: "fixed", top: position.y, left: position.x }
               : {}
           }
-          className={`z-50 w-44 rounded-xl border border-border/60 bg-popover shadow-lg shadow-black/10 overflow-hidden ${
-            anchor === "bottom" ? "absolute right-0 top-full mt-1.5" : ""
-          }`}
+          className={`z-50 w-44 rounded-xl border border-border/60 bg-popover shadow-lg shadow-black/10 overflow-hidden ${anchor === "bottom" ? "absolute right-0 top-full mt-1.5" : ""
+            }`}
         >
           <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
             Opções
@@ -127,11 +126,10 @@ const ContextMenu = ({
                     onClick();
                     onClose();
                   }}
-                  className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-colors ${
-                    danger
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-colors ${danger
                       ? "text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   {icon}
                   <span className="text-xs">{label}</span>
@@ -221,10 +219,42 @@ export const CardTask = ({ task }: { task: Task }) => {
             {statusInfo.label}
           </Badge>
 
-          {/* Date */}
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <MdCalendarToday className="text-sm shrink-0" />
-            <span>{formatDate(task.date)}</span>
+          {/* Description */}
+          {task.description && (
+            <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+              {task.description}
+            </p>
+          )}
+
+          {/* Date + Time / Duration */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <MdCalendarToday className="text-sm shrink-0" />
+              <span>{formatDate(task.date)}</span>
+            </div>
+
+            {(task.startTime || task.endTime) && (
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <MdAccessTime className="text-sm shrink-0" />
+                <span className="font-mono">
+                  {task.startTime ?? "--:--"}
+                  <span className="mx-1 opacity-40">→</span>
+                  {task.endTime ?? "--:--"}
+                </span>
+              </div>
+            )}
+
+            {!task.startTime && !task.endTime && task.duration && (() => {
+              const h = Math.floor(task.duration / 60);
+              const m = task.duration % 60;
+              const label = [h > 0 && `${h}h`, m > 0 && `${m}min`].filter(Boolean).join(" ");
+              return (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <MdAccessTime className="text-sm shrink-0" />
+                  <span>{label}</span>
+                </div>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
@@ -364,12 +394,12 @@ const TaskDetailsModal = ({
 
   const durationLabel = computedDuration
     ? [
-        Math.floor(computedDuration / 60) > 0 &&
-          `${Math.floor(computedDuration / 60)}h`,
-        computedDuration % 60 > 0 && `${computedDuration % 60}min`,
-      ]
-        .filter(Boolean)
-        .join(" ")
+      Math.floor(computedDuration / 60) > 0 &&
+      `${Math.floor(computedDuration / 60)}h`,
+      computedDuration % 60 > 0 && `${computedDuration % 60}min`,
+    ]
+      .filter(Boolean)
+      .join(" ")
     : null;
 
   return (
