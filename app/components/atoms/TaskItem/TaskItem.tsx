@@ -815,8 +815,8 @@ export const TaskItem = ({
               ) : (
                 <span
                   className={`text-sm font-medium truncate transition-all ${isCompleted
-                      ? "line-through text-muted-foreground"
-                      : "text-foreground"
+                    ? "line-through text-muted-foreground"
+                    : "text-foreground"
                     }`}
                 >
                   {task.title}
@@ -825,7 +825,7 @@ export const TaskItem = ({
             </div>
 
             {/* Time badge + Status */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-4">
               {!isPending && temporal.phase !== "none" && !isCompleted && (
                 <TimeBadge info={temporal} mode="compact" />
               )}
@@ -844,19 +844,16 @@ export const TaskItem = ({
           </div>
 
           {/* Actions col */}
-          <div className="md:hidden ml-auto sm:ml-0 shrink-0 relative flex items-center gap-1">
+          <div className="ml-auto sm:ml-0 shrink-0 relative flex items-center gap-1">
             {/* Mobile context button */}
             <button
               onClick={openMobileContext}
               className="sm:hidden p-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"
             >
-              <MoreHorizontal size={15} />
+              <MoreHorizontal size={15}/>
             </button>
 
-            {/* Desktop: ghost icon absolute, não ocupa espaço no grid */}
-            <span className="hidden sm:inline-flex absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md text-muted-foreground pointer-events-none">
-              <MoreHorizontal size={15} />
-            </span>
+            
 
             <div className="relative">
               <StatusDropdown
