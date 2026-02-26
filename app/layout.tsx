@@ -26,8 +26,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
-  const theme = (session?.user as any)?.theme ?? "system";
 
+  // theme format: "light" | "dark" | "system" | "teal-light" | "teal-dark" | "cyan-light" | "cyan-dark"
+  const theme = (session?.user as any)?.theme ?? "system";
 
   return (
     <html lang="pt-br" suppressHydrationWarning>
@@ -37,19 +38,36 @@ export default async function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = "${theme}";
+                  var theme = ${JSON.stringify(theme)};
+
+                  // theme format examples:
+                  //   "light"       → class="light"
+                  //   "dark"        → class="dark"
+                  //   "system"      → class="light" or "dark" based on prefers-color-scheme
+                  //   "teal-light"  → class="theme-teal"
+                  //   "teal-dark"   → class="dark theme-teal"
+                  //   "cyan-light"  → class="theme-cyan"
+                  //   "cyan-dark"   → class="dark theme-cyan"
+
                   var root = document.documentElement;
-                  root.classList.remove('light', 'dark');
-                  if (theme === 'dark') {
-                    root.classList.add('dark');
+                  root.classList.remove('light', 'dark', 'theme-teal', 'theme-cyan');
+
+                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                  if (theme === 'system') {
+                    root.classList.add(prefersDark ? 'dark' : 'light');
                   } else if (theme === 'light') {
                     root.classList.add('light');
-                  } else {
-                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                      root.classList.add('dark');
-                    } else {
-                      root.classList.add('light');
-                    }
+                  } else if (theme === 'dark') {
+                    root.classList.add('dark');
+                  } else if (theme === 'teal-light') {
+                    root.classList.add('theme-teal');
+                  } else if (theme === 'teal-dark') {
+                    root.classList.add('dark', 'theme-teal');
+                  } else if (theme === 'cyan-light') {
+                    root.classList.add('theme-cyan');
+                  } else if (theme === 'cyan-dark') {
+                    root.classList.add('dark', 'theme-cyan');
                   }
                 } catch(e) {}
               })();
@@ -57,7 +75,9 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <Providers>
           {children}
           <Toaster richColors position="top-center" />

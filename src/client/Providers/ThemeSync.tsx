@@ -1,20 +1,47 @@
 "use client";
-
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-type Theme = "light" | "dark" | "system";
+export type Theme =
+  | "light"
+  | "dark"
+  | "system"
+  | "teal-light"
+  | "teal-dark"
+  | "cyan-light"
+  | "cyan-dark";
 
-function applyThemeClass(theme: Theme) {
+const THEME_CLASSES = ["light", "dark", "theme-teal", "theme-cyan"] as const;
+
+export function applyThemeClass(theme: Theme) {
   const root = document.documentElement;
-  root.classList.remove("light", "dark");
+  root.classList.remove(...THEME_CLASSES);
 
-  if (theme === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    root.classList.add(prefersDark ? "dark" : "light");
-  } else {
-    root.classList.add(theme);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  switch (theme) {
+    case "system":
+      root.classList.add(prefersDark ? "dark" : "light");
+      break;
+    case "light":
+      root.classList.add("light");
+      break;
+    case "dark":
+      root.classList.add("dark");
+      break;
+    case "teal-light":
+      root.classList.add("theme-teal");
+      break;
+    case "teal-dark":
+      root.classList.add("dark", "theme-teal");
+      break;
+    case "cyan-light":
+      root.classList.add("theme-cyan");
+      break;
+    case "cyan-dark":
+      root.classList.add("dark", "theme-cyan");
+      break;
   }
 }
 
@@ -25,7 +52,18 @@ export function ThemeSync() {
   useEffect(() => {
     const theme = ((session?.user as any)?.theme ?? "system") as Theme;
     applyThemeClass(theme);
-  }, [pathname, session]); // re-executa em toda troca de rota
+  }, [pathname, session]);
+
+  // Escuta mudanças no SO quando theme === "system"
+  useEffect(() => {
+    const theme = ((session?.user as any)?.theme ?? "system") as Theme;
+    if (theme !== "system") return;
+
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => applyThemeClass("system");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [session]);
 
   return null;
 }

@@ -3,8 +3,8 @@ import { LuLogOut } from "react-icons/lu";
 
 export const LogOutBtn = () => {
   return (
-    <button className="w-full flex items-center" onClick={() => signOut()}>
-      <LuLogOut className="mr-2 h-4 w-4" />
+    <button className="w-full flex items-center text-destructive" onClick={() => signOut()}>
+      <LuLogOut className="mr-2 h-4 w-4 text-destructive" />
       Sair
     </button>
   );

@@ -366,7 +366,7 @@ export const BoardTab = ({ project }: BoardTabProps) => {
         className="hidden lg:block rounded-xl min-h-[calc(100vh-300px)] p-px"
         style={{
           background:
-            "linear-gradient(to right, transparent, rgb(36, 161, 54), transparent)",
+            "linear-gradient(to right, transparent, var(--primary), transparent)",
         }}
       >
         <div className="grid lg:grid-cols-4 gap-6 bg-card p-3 rounded-xl shadow min-h-[calc(100vh-300px)]">

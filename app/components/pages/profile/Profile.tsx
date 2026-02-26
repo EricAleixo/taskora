@@ -51,25 +51,108 @@ interface ProfilePageProps {
   userEmail?: string;
 }
 
-// ── Helpers de tema (sem next-themes) ─────────────────────────────────────────
+// ── Theme types & helpers ──────────────────────────────────────────────────────
 
-type Theme = "light" | "dark" | "system";
+export type Theme =
+  | "light"
+  | "dark"
+  | "system"
+  | "teal-light"
+  | "teal-dark"
+  | "cyan-light"
+  | "cyan-dark";
+
+const ALL_THEMES: {
+  value: Theme;
+  label: string;
+  /** classes CSS que representam visualmente o tema no mini-preview */
+  previewClass: string;
+  isDark: boolean;
+  colorKey: "green" | "teal" | "cyan";
+}[] = [
+  {
+    value: "light",
+    label: "Verde Claro",
+    previewClass: "bg-white border",
+    isDark: false,
+    colorKey: "green",
+  },
+  {
+    value: "dark",
+    label: "Verde Escuro",
+    previewClass: "bg-zinc-900",
+    isDark: true,
+    colorKey: "green",
+  },
+  {
+    value: "teal-light",
+    label: "Teal Claro",
+    previewClass: "bg-teal-50 border border-teal-200",
+    isDark: false,
+    colorKey: "teal",
+  },
+  {
+    value: "teal-dark",
+    label: "Teal Escuro",
+    previewClass: "bg-teal-950",
+    isDark: true,
+    colorKey: "teal",
+  },
+  {
+    value: "cyan-light",
+    label: "Cyan Claro",
+    previewClass: "bg-cyan-50 border border-cyan-200",
+    isDark: false,
+    colorKey: "cyan",
+  },
+  {
+    value: "cyan-dark",
+    label: "Cyan Escuro",
+    previewClass: "bg-cyan-950",
+    isDark: true,
+    colorKey: "cyan",
+  },
+];
+
+// Accent dot color por palette
+const COLOR_DOT: Record<"green" | "teal" | "cyan", string> = {
+  green: "bg-green-500",
+  teal: "bg-teal-500",
+  cyan: "bg-cyan-400",
+};
 
 /**
  * Aplica o tema diretamente na classe do <html>.
- * NÃO persiste nada — só visual.
+ * Mapeia o valor salvo → classes CSS corretas.
  */
 function applyThemeClass(theme: Theme) {
   const root = document.documentElement;
-  root.classList.remove("light", "dark");
+  root.classList.remove("light", "dark", "theme-teal", "theme-cyan");
 
-  if (theme === "system") {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    root.classList.add(prefersDark ? "dark" : "light");
-  } else {
-    root.classList.add(theme);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  switch (theme) {
+    case "system":
+      root.classList.add(prefersDark ? "dark" : "light");
+      break;
+    case "light":
+      root.classList.add("light");
+      break;
+    case "dark":
+      root.classList.add("dark");
+      break;
+    case "teal-light":
+      root.classList.add("theme-teal");
+      break;
+    case "teal-dark":
+      root.classList.add("dark", "theme-teal");
+      break;
+    case "cyan-light":
+      root.classList.add("theme-cyan");
+      break;
+    case "cyan-dark":
+      root.classList.add("dark", "theme-cyan");
+      break;
   }
 }
 
@@ -118,12 +201,12 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
   const { mutateAsync: uploadAvatar, isPending: isUploading } =
     useUploadAvatar();
 
-  // useSession para poder chamar update() e atualizar o JWT sem logout
   const { update: updateSession } = useSession();
 
   const [saved, setSaved] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const hasLoadedProfile = useRef(false);
+  const originalThemeRef = useRef<Theme>("system");
 
   const {
     register,
@@ -138,7 +221,7 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
       avatarUrl: "",
       bio: "",
       timezone: "",
-      theme: "",
+      theme: "system",
       receiveEmailNotifications: false,
     },
   });
@@ -148,6 +231,7 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
     hasLoadedProfile.current = true;
 
     const profileTheme = (data.profile.theme ?? "system") as Theme;
+    originalThemeRef.current = profileTheme;
 
     reset({
       name: data.profile.name ?? "",
@@ -158,15 +242,10 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
       receiveEmailNotifications: data.profile.receiveEmailNotifications ?? true,
     });
 
-    // Aplica o tema salvo no token (já aplicado pelo script do layout, mas garante sync)
     applyThemeClass(profileTheme);
 
-    // 🔑 Guarda o tema original (do token) para reverter ao sair sem salvar
-    const originalTheme = profileTheme;
-
     return () => {
-      // Sai sem salvar → reverte a classe pro tema que está no token
-      applyThemeClass(originalTheme);
+      applyThemeClass(originalThemeRef.current);
     };
   }, [data, reset]);
 
@@ -180,7 +259,7 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
 
   const avatarUrl = watch("avatarUrl");
   const bio = watch("bio");
-  const theme = watch("theme");
+  const theme = watch("theme") as Theme;
   const receiveEmailNotifications = watch("receiveEmailNotifications");
   const name = watch("name");
 
@@ -193,11 +272,10 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
         .toUpperCase()
     : "?";
 
-  // Preview visual apenas — NÃO persiste nada no token nem em cookie
   const handleThemeChange = (t: Theme) => {
     animateThemeChange(() => {
-      applyThemeClass(t); // só muda a classe do <html>
-      setValue("theme", t); // atualiza o form
+      applyThemeClass(t);
+      setValue("theme", t);
     });
   };
 
@@ -219,12 +297,9 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
       data: formData,
     });
 
-    // ✅ Só aqui atualiza o token JWT com o novo tema
-    // O callback jwt() no NextAuth intercepta trigger === "update" e grava token.theme
     await updateSession({ theme: formData.theme });
-
-    // Aplica visualmente (já estava em preview, mas confirma)
     applyThemeClass(formData.theme as Theme);
+    originalThemeRef.current = formData.theme as Theme;
 
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -412,38 +487,63 @@ export const ProfilePage = ({ userEmail }: ProfilePageProps) => {
               description="Escolha o tema da interface"
               delay={0.1}
             >
-              <div className="grid grid-cols-3 gap-3">
-                {(["light", "dark", "system"] as const).map((t) => (
+              {/* System option — full width on top */}
+              <button
+                type="button"
+                onClick={() => handleThemeChange("system")}
+                className={`
+                  relative w-full rounded-xl border-2 p-3 flex items-center gap-3 transition-all
+                  ${
+                    theme === "system"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/40"
+                  }
+                `}
+              >
+                <div className="h-8 w-14 rounded-md shrink-0 bg-linear-to-r from-white to-zinc-900 border" />
+                <div className="text-left">
+                  <p className="text-xs font-medium">Sistema</p>
+                  <p className="text-xs text-muted-foreground">
+                    Segue o seu SO
+                  </p>
+                </div>
+                {theme === "system" && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                    <LuCheck className="h-3 w-3" />
+                  </Badge>
+                )}
+              </button>
+
+              {/* 6 themes in 2-column grid (3 rows: green, teal, cyan) */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {ALL_THEMES.map((t) => (
                   <button
                     type="button"
-                    key={t}
-                    onClick={() => handleThemeChange(t)}
+                    key={t.value}
+                    onClick={() => handleThemeChange(t.value)}
                     className={`
                       relative rounded-xl border-2 p-3 text-center transition-all
                       ${
-                        theme === t
+                        theme === t.value
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-muted-foreground/40"
                       }
                     `}
                   >
+                    {/* Mini preview */}
                     <div
-                      className={`h-8 rounded-md mb-2 w-full ${
-                        t === "light"
-                          ? "bg-white border"
-                          : t === "dark"
-                            ? "bg-zinc-900"
-                            : "bg-linear-to-br from-white to-zinc-900"
-                      }`}
-                    />
-                    <span className="text-xs font-medium">
-                      {t === "light"
-                        ? "Claro"
-                        : t === "dark"
-                          ? "Escuro"
-                          : "Sistema"}
+                      className={`h-8 rounded-md mb-2 w-full ${t.previewClass} flex items-end justify-end p-1`}
+                    >
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${COLOR_DOT[t.colorKey]}`}
+                      />
+                    </div>
+
+                    <span className="text-xs font-medium leading-tight block">
+                      {t.label}
                     </span>
-                    {theme === t && (
+
+                    {theme === t.value && (
                       <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">
                         <LuCheck className="h-3 w-3" />
                       </Badge>

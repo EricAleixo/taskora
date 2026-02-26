@@ -58,7 +58,7 @@ export const OverviewTab = ({ project }: OverviewTabProps) => {
       className="relative rounded-xl min-h-[calc(100vh-800px)] p-px"
       style={{
         background:
-          "linear-gradient(to right, transparent, rgb(36, 161, 54), transparent)",
+          "linear-gradient(to right, transparent, var(--primary), transparent)",
       }}
     >
       <div className="bg-card p-6 rounded-xl shadow min-h-full space-y-6">
