@@ -1,6 +1,6 @@
 import { Plus, Circle, CircleDot, Eye, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { AnimatePresence, motion, type Variants } from "framer-motion";
+import { AnimatePresence, motion, type TargetAndTransition } from "framer-motion";
 import { TaskItem } from "../../atoms/TaskItem/TaskItem";
 import { Task } from "@/app/types/Task";
 import { TaskForm } from "../../organisms/Modal/TaskForm";
@@ -38,28 +38,27 @@ const statusConfig: Record<
 
 const STATUS_ORDER = ["pending", "in_progress", "review", "completed"];
 
-const listVariants: Variants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.04,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 10, scale: 0.98 },
-  visible: {
+// Cada item controla sua própria animação com initial/animate/exit explícitos.
+// Isso evita o bug central: com staggerChildren+variants, quando o pai não muda
+// de key (filtro igual), novos filhos entram herdando o estado atual do pai
+// ("visible") e nunca executam a transição hidden→visible. Ficam presos em opacity:0.
+export const itemMotion: {
+  initial: TargetAndTransition;
+  animate: TargetAndTransition;
+  exit: TargetAndTransition;
+} = {
+  initial: { opacity: 0, y: 8, scale: 0.98 },
+  animate: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.22, ease: [0.25, 0.1, 0.25, 1] },
+    transition: { duration: 0.22, ease: [0.25, 0.1, 0.25, 1] as const },
   },
   exit: {
     opacity: 0,
-    y: -6,
+    y: -4,
     scale: 0.97,
-    transition: { duration: 0.15, ease: [0.4, 0, 1, 1] },
+    transition: { duration: 0.15, ease: [0.4, 0, 1, 1] as const },
   },
 };
 
@@ -133,8 +132,11 @@ export const ListTab = ({ project }: ListTabProps) => {
           <span />
         </div>
 
-        {/* Rows */}
-        <AnimatePresence mode="wait">
+        {/* Rows — AnimatePresence envolve diretamente os TaskItems.
+            initial={false} evita que itens já existentes animem no primeiro render.
+            Cada item tem key=task.id, então o Framer detecta mount/unmount
+            e dispara initial→animate somente para itens novos. */}
+        <div className="relative">
           {sorted.length === 0 ? (
             <motion.div
               key="empty"
@@ -148,27 +150,21 @@ export const ListTab = ({ project }: ListTabProps) => {
               <p className="text-sm">Nenhuma tarefa encontrada.</p>
             </motion.div>
           ) : (
-            <motion.ul
-              key={activeFilter}
-              variants={listVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-            >
+            <AnimatePresence initial={false}>
               {sorted.map((task, idx) => (
-                <motion.li key={task.id ?? idx} variants={itemVariants}>
-                  <TaskItem
-                    task={task}
-                    isLast={idx === sorted.length - 1}
-                    statusConfig={statusConfig}
-                    onEdit={(task) => setEditingTask(task)}
-                    onDelete={(task) => setDeletingTask(task)}
-                  />
-                </motion.li>
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  isLast={idx === sorted.length - 1}
+                  statusConfig={statusConfig}
+                  onEdit={(t) => setEditingTask(t)}
+                  onDelete={(t) => setDeletingTask(t)}
+                  motionProps={itemMotion}
+                />
               ))}
-            </motion.ul>
+            </AnimatePresence>
           )}
-        </AnimatePresence>
+        </div>
 
         {/* Add task row */}
         <button

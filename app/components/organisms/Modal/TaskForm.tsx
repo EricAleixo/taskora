@@ -7,6 +7,7 @@ import { useCreateTask } from "@/src/client/services/tasks/useCreateTask";
 import { useUpdateTask } from "@/src/client/services/tasks/useUpdateTask";
 import { useDeleteTask } from "@/src/client/services/tasks/useDeleteTask";
 import { AnimatePresence, motion } from "framer-motion";
+import { TimePicker } from "../../molecules/TimePicker/TimePicker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,14 +57,8 @@ const backdropVariants = {
   exit: { opacity: 0, transition: { duration: 0.2, ease: "easeIn" as const, delay: 0.05 } },
 };
 
-// Mobile: slide up from bottom; Desktop: scale + fade from slightly below
 const panelVariants = {
-  hidden: {
-    opacity: 0,
-    y: "100%",
-    // overridden per breakpoint via CSS media isn't possible here,
-    // so we handle it with a shared variant and let CSS do the rest.
-  },
+  hidden: { opacity: 0, y: "100%" },
   visible: {
     opacity: 1,
     y: 0,
@@ -76,7 +71,6 @@ const panelVariants = {
   },
 };
 
-// Desktop override (sm breakpoint and up)
 const panelDesktopVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 12 },
   visible: {
@@ -388,23 +382,29 @@ export function TaskForm({
                   />
                 </div>
 
-                {/* Time range */}
+                {/* ── Time range (drum pickers) ─────────────────────────── */}
                 <div className="space-y-1.5">
                   <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     <MdAccessTime className="h-3.5 w-3.5" /> Horário{" "}
                     <span className="normal-case font-normal opacity-50">(opcional)</span>
                   </span>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 space-y-1">
-                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wide">Início</span>
-                      <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className={input} />
-                    </div>
-                    <div className="pb-1 text-muted-foreground/30 shrink-0">—</div>
-                    <div className="flex-1 space-y-1">
-                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wide">Fim</span>
-                      <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className={input} />
-                    </div>
+
+                  <div className="flex items-end gap-3">
+                    <TimePicker
+                      label="Início"
+                      value={startTime}
+                      onChange={setStartTime}
+                    />
+
+                    <div className="pb-3 text-muted-foreground/30 shrink-0 text-lg font-mono">—</div>
+
+                    <TimePicker
+                      label="Fim"
+                      value={endTime}
+                      onChange={setEndTime}
+                    />
                   </div>
+
                   <AnimatePresence>
                     {durationLabel && (
                       <motion.p
